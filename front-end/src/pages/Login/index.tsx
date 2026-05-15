@@ -1,13 +1,23 @@
 import { signIn } from "@/lib/auth-client";
+import { useState } from "react";
 import { FaGithub } from "react-icons/fa";
+import { LuLoader } from "react-icons/lu";
 
 export default function Login() {
+  const [isLoading, setIsLoading] = useState(false);
+
   async function handleGitHubLogin() {
-    await signIn.social({
-      provider: "github",
-      callbackURL: "http://localhost:5173/app/analyze",
-      errorCallbackURL: "/",
-    });
+    try {
+      setIsLoading(true);
+      await signIn.social({
+        provider: "github",
+        callbackURL: "http://localhost:5173/app/analyze",
+        errorCallbackURL: "/",
+      });
+    } catch (error) {
+      console.log(error);
+      return;
+    }
   }
 
   return (
@@ -40,10 +50,16 @@ export default function Login() {
 
         <button
           onClick={handleGitHubLogin}
-          className="flex items-center justify-center gap-2.5 w-full h-10.5 bg-[#1a1a1a] hover:bg-[#2d2d2d] active:bg-[#111] text-white rounded-md text-sm font-medium cursor-pointer transition-colors duration-150"
+          className="flex items-center justify-center w-full h-10.5 bg-[#1a1a1a] hover:bg-[#2d2d2d] active:bg-[#111] text-white rounded-md text-sm font-medium cursor-pointer transition-colors duration-150"
         >
-          <FaGithub />
-          Entrar com GitHub
+          {isLoading ? (
+            <LuLoader className="animate-spin" />
+          ) : (
+            <div className="flex items-center gap-2">
+              <FaGithub />
+              Entrar com GitHub
+            </div>
+          )}
         </button>
 
         <p className="mt-4 text-center text-[0.72rem] text-text-tertiary">
