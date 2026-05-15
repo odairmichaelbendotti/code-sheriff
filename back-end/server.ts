@@ -5,7 +5,7 @@ import { auth } from "./lib/auth.js";
 
 const app = express();
 
-app.all("/api/auth/*", toNodeHandler(auth));
+app.all("/api/auth/{*any}", toNodeHandler(auth));
 app.use(express.json());
 app.use("/api", userRouter);
 

@@ -5,7 +5,8 @@ export default function Login() {
   async function handleGitHubLogin() {
     await signIn.social({
       provider: "github",
-      callbackURL: "",
+      callbackURL: "/app/analyze",
+      errorCallbackURL: "/",
     });
   }
 
