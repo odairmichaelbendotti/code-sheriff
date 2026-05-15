@@ -2,7 +2,7 @@ import express from "express";
 import { userRouter } from "./src/routes/user.routes.js";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
-import { auth } from "./lib/auth.js";
+import { auth } from "./src/lib/auth.js";
 
 const app = express();
 app.use(
