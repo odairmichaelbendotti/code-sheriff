@@ -37,7 +37,7 @@ Os comentários são postados diretamente nas linhas do PR dentro do GitHub, no 
 - Use Tailwind CSS 4.3 em todos os componentes, sem exceção, use a sintaxe mais recente
 - Nunca use CSS puro ou CSS Modules
 - Cores customizadas ficam no `tailwind.config.ts`, não em variáveis CSS
-- Use Lucide React para ícones
+- Use React Icons para ícones
 
 ## Arquitetura e fluxo
 
