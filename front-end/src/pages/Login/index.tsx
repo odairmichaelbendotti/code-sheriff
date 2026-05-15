@@ -1,10 +1,52 @@
 import { signIn } from "@/lib/auth-client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { LuLoader } from "react-icons/lu";
 
+const AUTH_STEPS = [
+  { message: "Conectando ao GitHub", delay: 0 },
+  { message: "Aguardando autorização", delay: 1500 },
+  { message: "Verificando permissões", delay: 3500 },
+  { message: "Configurando sua conta", delay: 5000 },
+  { message: "Quase lá", delay: 8000 },
+];
+
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  function clearTimers() {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  }
+
+  useEffect(() => {
+    if (!isLoading) return;
+
+    AUTH_STEPS.forEach((step, i) => {
+      if (i === 0) return;
+      const t = setTimeout(() => {
+        setVisible(false);
+        const fadeIn = setTimeout(() => {
+          setStepIndex(i);
+          setVisible(true);
+        }, 300);
+        timersRef.current.push(fadeIn);
+      }, step.delay);
+      timersRef.current.push(t);
+    });
+
+    return clearTimers;
+  }, [isLoading]);
+
+  function resetLoadingState() {
+    clearTimers();
+    setIsLoading(false);
+    setStepIndex(0);
+    setVisible(true);
+  }
 
   async function handleGitHubLogin() {
     try {
@@ -16,7 +58,7 @@ export default function Login() {
       });
     } catch (error) {
       console.log(error);
-      return;
+      resetLoadingState();
     }
   }
 
@@ -50,7 +92,8 @@ export default function Login() {
 
         <button
           onClick={handleGitHubLogin}
-          className="flex items-center justify-center w-full h-10.5 bg-[#1a1a1a] hover:bg-[#2d2d2d] active:bg-[#111] text-white rounded-md text-sm font-medium cursor-pointer transition-colors duration-150"
+          disabled={isLoading}
+          className="flex items-center justify-center w-full h-10.5 bg-[#1a1a1a] hover:bg-[#2d2d2d] active:bg-[#111] disabled:opacity-80 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium cursor-pointer transition-colors duration-150"
         >
           {isLoading ? (
             <LuLoader className="animate-spin" />
@@ -62,9 +105,25 @@ export default function Login() {
           )}
         </button>
 
-        <p className="mt-4 text-center text-[0.72rem] text-text-tertiary">
-          Ao entrar, você concorda com os Termos de Uso
-        </p>
+        {isLoading && (
+          <div className="mt-4 flex items-center justify-center gap-2 min-h-5">
+            <span
+              style={{
+                opacity: visible ? 1 : 0,
+                transition: "opacity 0.3s ease",
+              }}
+              className="text-[0.72rem] text-text-tertiary"
+            >
+              {AUTH_STEPS[stepIndex].message}
+            </span>
+          </div>
+        )}
+
+        {!isLoading && (
+          <p className="mt-4 text-center text-[0.72rem] text-text-tertiary">
+            Ao entrar, você concorda com os Termos de Uso
+          </p>
+        )}
       </div>
     </div>
   );
