@@ -5,7 +5,7 @@ export default function Login() {
   async function handleGitHubLogin() {
     await signIn.social({
       provider: "github",
-      callbackURL: "/app/analyze",
+      callbackURL: "http://localhost:5173/app/analyze",
       errorCallbackURL: "/",
     });
   }
