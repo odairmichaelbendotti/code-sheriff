@@ -1,8 +1,12 @@
+import { signIn } from "@/lib/auth-client";
 import { FaGithub } from "react-icons/fa";
 
 export default function Login() {
-  function handleGitHubLogin() {
-    // TODO: signIn.social({ provider: "github" })
+  async function handleGitHubLogin() {
+    await signIn.social({
+      provider: "github",
+      callbackURL: "",
+    });
   }
 
   return (
