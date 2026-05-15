@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-interface Pull {
+export interface Pull {
   id: number;
   number: number;
   title: string;
@@ -19,9 +19,13 @@ interface Pull {
 interface PullsStore {
   pulls: Pull[] | null;
   setPulls: (pulls: Pull[]) => void;
+  isFetching: boolean;
+  setIsFetching: (isFetching: boolean) => void;
 }
 
 export const usePullsStore = create<PullsStore>((set) => ({
   pulls: [],
   setPulls: (pulls) => set({ pulls }),
+  isFetching: false,
+  setIsFetching: (isFetching) => set({ isFetching }),
 }));
