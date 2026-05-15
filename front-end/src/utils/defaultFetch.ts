@@ -1,25 +1,20 @@
-type FetchOptions = Omit<RequestInit, "body"> & {
+type DefaultFetchProps = Omit<RequestInit, "body"> & {
+  endpoint: string;
   body?: unknown;
 };
 
-export async function defaultFetch<T = unknown>(
-  endpoint: string,
-  options?: FetchOptions,
-): Promise<T> {
-  const serverUrl = import.meta.env.VITE_SERVER_URL;
-  const url = `${serverUrl}${endpoint}`;
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options?.headers,
-  };
-
-  const body = options?.body ? JSON.stringify(options.body) : undefined;
-
-  const response = await fetch(url, {
+export async function defaultFetch<T = unknown>({
+  endpoint,
+  body,
+  ...options
+}: DefaultFetchProps): Promise<T> {
+  const response = await fetch(`${import.meta.env.VITE_SERVER_URL}${endpoint}`, {
     ...options,
-    headers,
-    body,
+    headers: {
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...options.headers,
+    },
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {

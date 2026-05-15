@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LuArrowRight } from "react-icons/lu";
 import PrInput from "./PrInput";
 import AgentSelector from "./AgentSelector";
 import AnalysisHistory from "./AnalysisHistory";
+import { usePullsStore, type Pull } from "@/store/pulls.store";
+import { defaultFetch } from "@/utils/defaultFetch";
 
 export type Agent = "security" | "performance" | "quality";
 
@@ -13,6 +15,22 @@ export default function Analyze() {
     "performance",
     "quality",
   ]);
+
+  const { pulls, setPulls, setIsFetching } = usePullsStore();
+
+  useEffect(() => {
+    setIsFetching(true);
+    defaultFetch({
+      endpoint: "/api/pulls",
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => setPulls(response as Pull[]))
+      .catch((error) => console.log(error))
+      .finally(() => setIsFetching(false));
+  }, []);
+
+  console.log(pulls);
 
   function handleAnalyze() {
     // TODO: trigger analysis

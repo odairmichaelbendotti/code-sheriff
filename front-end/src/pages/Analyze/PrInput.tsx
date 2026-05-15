@@ -1,3 +1,4 @@
+import { usePullsStore } from "@/store/pulls.store";
 import { useState } from "react";
 import { LuGitPullRequest, LuChevronDown, LuX } from "react-icons/lu";
 
@@ -39,7 +40,10 @@ const MOCK_PENDING_PRS: PendingPR[] = [
 ];
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 interface PrInputProps {
@@ -55,24 +59,37 @@ export default function PrInput({ url, onChange }: PrInputProps) {
     setDropdownOpen(false);
   }
 
+  const { isFetching } = usePullsStore();
+
   return (
     <div className="relative flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-text-primary">
           Pull Request URL
         </label>
-        <button
-          type="button"
-          onClick={() => setDropdownOpen((v) => !v)}
-          className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
-        >
-          <LuGitPullRequest size={13} />
-          My open PRs
-          <LuChevronDown
-            size={12}
-            className={["transition-transform duration-200", dropdownOpen ? "rotate-180" : ""].join(" ")}
-          />
-        </button>
+
+        {isFetching ? (
+          <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
+            <span className="size-3 rounded-full border-2 border-text-tertiary border-t-transparent animate-spin" />
+            Loading PRs...
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDropdownOpen((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
+          >
+            <LuGitPullRequest size={13} />
+            My open PRs
+            <LuChevronDown
+              size={12}
+              className={[
+                "transition-transform duration-200",
+                dropdownOpen ? "rotate-180" : "",
+              ].join(" ")}
+            />
+          </button>
+        )}
       </div>
 
       <input
@@ -91,7 +108,9 @@ export default function PrInput({ url, onChange }: PrInputProps) {
       {dropdownOpen && (
         <div className="absolute top-7 left-0 right-0 z-50 rounded-xl border border-border-default bg-bg-primary shadow-lg shadow-black/8 overflow-hidden">
           <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border-subtle">
-            <span className="text-xs font-medium text-text-secondary">Open pull requests</span>
+            <span className="text-xs font-medium text-text-secondary">
+              Open pull requests
+            </span>
             <button
               type="button"
               onClick={() => setDropdownOpen(false)}
@@ -108,17 +127,26 @@ export default function PrInput({ url, onChange }: PrInputProps) {
                   onClick={() => selectPR(pr)}
                   className="w-full flex items-start gap-3 px-3.5 py-3 text-left hover:bg-bg-secondary transition-colors cursor-pointer group"
                 >
-                  <LuGitPullRequest size={14} className="text-text-tertiary shrink-0 mt-0.5" />
+                  <LuGitPullRequest
+                    size={14}
+                    className="text-text-tertiary shrink-0 mt-0.5"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-text-tertiary truncate">{pr.repo}</span>
-                      <span className="text-xs text-text-tertiary shrink-0">#{pr.number}</span>
+                      <span className="text-xs text-text-tertiary truncate">
+                        {pr.repo}
+                      </span>
+                      <span className="text-xs text-text-tertiary shrink-0">
+                        #{pr.number}
+                      </span>
                     </div>
                     <p className="text-sm text-text-primary truncate mt-0.5 leading-snug group-hover:text-accent transition-colors">
                       {pr.title}
                     </p>
                   </div>
-                  <span className="text-xs text-text-tertiary shrink-0 mt-0.5">{formatDate(pr.updatedAt)}</span>
+                  <span className="text-xs text-text-tertiary shrink-0 mt-0.5">
+                    {formatDate(pr.updatedAt)}
+                  </span>
                 </button>
               </li>
             ))}
