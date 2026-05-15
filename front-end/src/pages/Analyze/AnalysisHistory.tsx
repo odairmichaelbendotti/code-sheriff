@@ -24,17 +24,20 @@ const MOCK_ANALYSES: Analysis[] = [
     findings: { critical: 0, warning: 2, suggestion: 5 },
     date: "2026-05-12",
   },
-  {
-    id: "3",
-    repo: "user/my-project",
-    pr: 15,
-    findings: { critical: 3, warning: 1, suggestion: 2 },
-    date: "2026-05-10",
-  },
+  // {
+  //   id: "3",
+  //   repo: "user/my-project",
+  //   pr: 15,
+  //   findings: { critical: 3, warning: 1, suggestion: 2 },
+  //   date: "2026-05-10",
+  // },
 ];
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function totalFindings(f: Analysis["findings"]) {
@@ -47,9 +50,13 @@ export default function AnalysisHistory() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-text-primary">Recent analyses</span>
+        <span className="text-sm font-medium text-text-primary">
+          Recent analyses
+        </span>
         {analyses.length > 0 && (
-          <span className="text-xs text-text-tertiary">{analyses.length} runs</span>
+          <span className="text-xs text-text-tertiary">
+            {analyses.length} runs
+          </span>
         )}
       </div>
 
@@ -68,8 +75,12 @@ export default function AnalysisHistory() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-text-primary truncate">{a.repo}</span>
-                    <span className="text-xs text-text-tertiary shrink-0">#{a.pr}</span>
+                    <span className="text-sm font-medium text-text-primary truncate">
+                      {a.repo}
+                    </span>
+                    <span className="text-xs text-text-tertiary shrink-0">
+                      #{a.pr}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                     {a.findings.critical > 0 && (
@@ -81,7 +92,8 @@ export default function AnalysisHistory() {
                     {a.findings.warning > 0 && (
                       <span className="flex items-center gap-1 text-xs text-amber-500">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                        {a.findings.warning} {a.findings.warning === 1 ? "warning" : "warnings"}
+                        {a.findings.warning}{" "}
+                        {a.findings.warning === 1 ? "warning" : "warnings"}
                       </span>
                     )}
                     {a.findings.suggestion > 0 && (
@@ -91,7 +103,9 @@ export default function AnalysisHistory() {
                       </span>
                     )}
                     {totalFindings(a.findings) === 0 && (
-                      <span className="text-xs text-emerald-500 font-medium">No issues found</span>
+                      <span className="text-xs text-emerald-500 font-medium">
+                        No issues found
+                      </span>
                     )}
                   </div>
                 </div>
