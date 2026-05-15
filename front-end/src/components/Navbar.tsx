@@ -30,7 +30,7 @@ export default function Navbar() {
           />
         )}
         <span className="hidden sm:block text-sm text-text-secondary">
-          {session?.user?.name}
+          {session?.user?.name.split(" ")[0]}
         </span>
         <button
           onClick={handleLogout}

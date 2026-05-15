@@ -27,7 +27,7 @@ Os comentários são postados diretamente nas linhas do PR dentro do GitHub, no 
 - **Autenticação:** Better Auth + GitHub OAuth App
 - **IA:** LangChain.js, OpenAI GPT-4o, Vercel AI SDK (streaming)
 - **Integração GitHub:** Octokit (`@octokit/rest`)
-- **Banco de dados:** Supabase (PostgreSQL) + Drizzle ORM
+- **Banco de dados:** Supabase (PostgreSQL) + Prisma ORM
 
 ---
 
