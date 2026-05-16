@@ -47,6 +47,11 @@ export default function PrInput({ url, onChange }: PrInputProps) {
           >
             <LuGitPullRequest size={13} />
             My open PRs
+            {pulls && pulls.length > 0 && (
+              <span className="flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-accent text-white text-[10px] font-medium leading-none">
+                {pulls.length}
+              </span>
+            )}
             <LuChevronDown
               size={12}
               className={[
