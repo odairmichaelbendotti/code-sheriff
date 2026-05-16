@@ -23,7 +23,22 @@ export async function getPullChangedFiles({
       repo,
       pull_number: Number(prNumber),
     });
-    return data;
+
+    const changedFiles = {
+      owner: owner,
+      repo: repo,
+      prNumber: prNumber,
+      files: data.map((file) => ({
+        filename: file.filename,
+        status: file.status,
+        patch: file.patch,
+        sha: file.sha,
+        additions: file.additions,
+        deletions: file.deletions,
+      })),
+    };
+
+    return changedFiles;
   } catch (error) {
     throw new Error("Failed to fetch pull request files");
   }

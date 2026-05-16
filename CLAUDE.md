@@ -86,18 +86,20 @@ Classes geradas automaticamente pelo Tailwind v4: `bg-bg-primary`, `text-text-se
 1. Usuário acessa `/` — se já autenticado é redirecionado para `/analyze`, senão vê a tela de login
 2. Após login com GitHub via Better Auth, é redirecionado para `/analyze`
 3. Better Auth armazena o `access_token` do GitHub no banco (tabela `account`)
-4. Usuário cola a URL de um PR (ex: `https://github.com/user/repo/pull/42`)
+4. Usuário cola a URL de um PR (ex: `https://github.com/user/repo/pull/42`) e clica em Analyze
 5. O backend extrai `owner`, `repo` e `pull_number` da URL
 6. O backend busca o `access_token` do usuário no banco e instancia o Octokit com ele
-7. Octokit busca os arquivos alterados no PR via `pulls.listFiles`
-8. O orquestrador LangChain divide o diff por arquivo e dispara 3 agentes em paralelo:
+7. Octokit busca os arquivos alterados no PR via `pulls.listFiles` e retorna o diff para o frontend
+8. Frontend redireciona para `/view` com os dados via `location.state` — usuário visualiza o diff e clica em "Run AI Analysis"
+9. O backend busca o conteúdo completo dos arquivos via `repos.getContent` para preservar contexto completo para os agentes
+10. O orquestrador LangChain divide o conteúdo por arquivo e dispara 3 agentes em paralelo:
    - **Agente Segurança** — SQL injection, secrets vazados, vulnerabilidades OWASP
    - **Agente Performance** — N+1 queries, loops desnecessários, uso de memória
    - **Agente Qualidade** — boas práticas, DRY, naming, tipagem
-9. Cada agente retorna JSON estruturado: `{ linha, severidade, mensagem, sugestão }`
-10. O agregador junta os resultados, remove duplicatas e ordena por severidade
-11. Os resultados são enviados ao browser via SSE (streaming em tempo real)
-12. O Octokit posta o review com comentários nas linhas exatas do PR via `pulls.createReview`
+11. Cada agente retorna JSON estruturado: `{ linha, severidade, mensagem, sugestão }`
+12. O agregador junta os resultados, remove duplicatas e ordena por severidade
+13. Os resultados são enviados ao browser via SSE (streaming em tempo real)
+14. O Octokit posta o review com comentários nas linhas exatas do PR via `pulls.createReview`
 
 ---
 
@@ -113,6 +115,8 @@ src/
 │   │   ├── PrInput.tsx
 │   │   ├── AgentSelector.tsx
 │   │   └── AnalysisHistory.tsx
+│   ├── ViewCode/
+│   │   └── index.tsx
 │   └── Results/
 │       ├── index.tsx
 │       ├── StreamLog.tsx
@@ -149,10 +153,14 @@ Cada página tem seus próprios componentes dentro da sua pasta. Componentes só
 
 **Analyze** (`src/pages/Analyze/`)
 
-- `index.tsx` — página principal, compõe os componentes abaixo
+- `index.tsx` — página principal, compõe os componentes abaixo. Quando a URL do PR é válida, exibe o botão "View changes" ao lado do botão "Analyze" no desktop (mesma linha, `flex-row`) e abaixo no mobile (`flex-col`). O botão é oculto enquanto não há URL válida.
 - `PrInput.tsx` — campo para colar a URL do PR e botão de análise
 - `AgentSelector.tsx` — checkboxes para ativar/desativar cada agente
 - `AnalysisHistory.tsx` — lista de análises anteriores do usuário
+
+**ViewCode** (`src/pages/ViewCode/`)
+
+- `index.tsx` — exibe o diff do PR (arquivos alterados com patch) e botão "Run AI Analysis". Recebe dados via `location.state` do React Router (`owner`, `repo`, `pull_number`, `files`). Sem componentes filhos.
 
 **Results** (`src/pages/Results/`)
 
@@ -171,8 +179,9 @@ Cada página tem seus próprios componentes dentro da sua pasta. Componentes só
 
   <Route element={<PrivateRoute />}>
     <Route element={<AppLayout />}>
-      <Route path="/analyze" element={<Analyze />} />
-      <Route path="/results/:id" element={<Results />} />
+      <Route path="/app/analyze" element={<Analyze />} />
+      <Route path="/app/view" element={<ViewCode />} />
+      <Route path="/app/results/:id" element={<Results />} />
     </Route>
   </Route>
 </Routes>

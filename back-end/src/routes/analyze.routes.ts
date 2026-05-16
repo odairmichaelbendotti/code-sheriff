@@ -4,4 +4,8 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 
 export const analyzeRouter = Router();
 
-analyzeRouter.post("/analyze", authMiddleware, analyzeController.analyze);
+analyzeRouter.post(
+  "/analyze/preview",
+  authMiddleware,
+  analyzeController.analyze,
+);

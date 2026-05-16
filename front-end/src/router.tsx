@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import Login from "./pages/Login";
 import Analyze from "./pages/Analyze";
+import ViewCode from "./pages/ViewCode";
 import Results from "./pages/Results/index";
 import AppLayout from "./components/AppLayout";
 import PrivateRoute from "./components/PrivateRoute";
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
           {
             path: "/app/analyze",
             element: <Analyze />,
+          },
+          {
+            path: "/app/view",
+            element: <ViewCode />,
           },
           {
             path: "/app/results/:id",
