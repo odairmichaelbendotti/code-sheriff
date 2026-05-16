@@ -18,7 +18,7 @@ export const userController = {
 
       const pulls = await getPullsByUser(account.accessToken);
 
-      res.status(200).json({ pulls: pulls });
+      res.status(200).json(pulls);
     } catch (error) {
       return res.status(500).json({ error: "Internal error" });
     }
