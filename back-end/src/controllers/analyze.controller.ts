@@ -6,9 +6,9 @@ import { getPullChangedFiles } from "../services/getPullChangedFiles.js";
 export const analyzeController = {
   analyze: async (req: Request, res: Response) => {
     try {
-      const { prUrl } = req.body;
+      const { url } = req.body;
 
-      const parts = PrUrlParser(prUrl);
+      const parts = PrUrlParser(url);
 
       if (!parts.owner || !parts.repo || !parts.prNumber) {
         return res.status(400).json({ error: "Invalid PR URL" });

@@ -1,22 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LuArrowRight } from "react-icons/lu";
+import { useNavigate } from "react-router";
 import PrInput from "./PrInput";
 import AgentSelector from "./AgentSelector";
 import AnalysisHistory from "./AnalysisHistory";
 import { usePullsStore, type Pull } from "@/store/pulls.store";
+import { usePrPreviewStore, type ChangedFiles } from "@/store/prPreview.store";
 import { defaultFetch } from "@/utils/defaultFetch";
+import { useState } from "react";
+
+const PR_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+$/;
 
 export type Agent = "security" | "performance" | "quality";
 
 export default function Analyze() {
-  const [url, setUrl] = useState("");
+  const navigate = useNavigate();
+  const { setPulls, setIsFetching } = usePullsStore();
+  const { url, setUrl, setPrPreview, setIsPrPreviewLoading } = usePrPreviewStore();
+
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([
     "security",
     "performance",
     "quality",
   ]);
 
-  const { pulls, setPulls, setIsFetching } = usePullsStore();
+  const isValidUrl = PR_URL_REGEX.test(url.trim());
 
   useEffect(() => {
     setIsFetching(true);
@@ -30,7 +38,23 @@ export default function Analyze() {
       .finally(() => setIsFetching(false));
   }, []);
 
-  console.log(pulls);
+  async function handleChangePr(newUrl: string) {
+    setUrl(newUrl);
+    setPrPreview(null);
+
+    if (!PR_URL_REGEX.test(newUrl.trim())) return;
+
+    setIsPrPreviewLoading(true);
+    defaultFetch({
+      endpoint: "/api/analyze/preview",
+      method: "POST",
+      credentials: "include",
+      body: { url: newUrl },
+    })
+      .then((response) => setPrPreview(response as ChangedFiles))
+      .catch((err) => console.log(err))
+      .finally(() => setIsPrPreviewLoading(false));
+  }
 
   function handleAnalyze() {
     // TODO: trigger analysis
@@ -50,7 +74,11 @@ export default function Analyze() {
         </div>
 
         <div className="flex flex-col gap-6 p-5 bg-bg-primary rounded-xl border border-border-subtle shadow-sm">
-          <PrInput url={url} onChange={setUrl} />
+          <PrInput
+            url={url}
+            handleChangePr={handleChangePr}
+            onViewChanges={() => navigate("/app/view")}
+          />
 
           <hr className="border-border-subtle" />
 
@@ -72,7 +100,7 @@ export default function Analyze() {
           <button
             type="button"
             onClick={handleAnalyze}
-            disabled={!url.trim()}
+            disabled={!isValidUrl}
             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             Analyze
