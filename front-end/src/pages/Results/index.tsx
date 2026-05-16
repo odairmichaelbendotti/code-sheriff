@@ -12,6 +12,7 @@ import {
   LuOctagon,
 } from "react-icons/lu";
 import FindingCard, { type Finding } from "./FindingCard";
+import Stepper from "@/components/Stepper";
 
 // TODO: replace with real data from backend
 const MOCK_FINDINGS: Finding[] = [
@@ -178,14 +179,18 @@ export default function Results() {
   return (
     <main className="h-full bg-bg-secondary">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-8 flex flex-col gap-8">
-        {/* Back */}
-        <NavLink
-          to="/app/analyze"
-          className="flex items-center gap-1.5 text-sm text-text-tertiary hover:text-text-secondary transition-colors w-fit"
-        >
-          <LuArrowLeft size={14} />
-          Back to Analyze
-        </NavLink>
+        {/* Back + Stepper */}
+        <div className="flex items-center justify-between gap-4">
+          <NavLink
+            to="/app/analyze"
+            className="flex items-center gap-1.5 text-sm text-text-tertiary hover:text-text-secondary transition-colors shrink-0"
+          >
+            <LuArrowLeft size={14} />
+            <span className="hidden sm:inline">Back</span>
+          </NavLink>
+          <Stepper current={2} />
+          <div className="w-16 shrink-0 hidden sm:block" />
+        </div>
 
         {/* Hero */}
         <div

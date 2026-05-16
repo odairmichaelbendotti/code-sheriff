@@ -1,13 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LuArrowRight } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import PrInput from "./PrInput";
 import AgentSelector from "./AgentSelector";
 import AnalysisHistory from "./AnalysisHistory";
+import Stepper from "@/components/Stepper";
 import { usePullsStore, type Pull } from "@/store/pulls.store";
 import { usePrPreviewStore, type ChangedFiles } from "@/store/prPreview.store";
 import { defaultFetch } from "@/utils/defaultFetch";
-import { useState } from "react";
 
 const PR_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+$/;
 
@@ -16,7 +16,8 @@ export type Agent = "security" | "performance" | "quality";
 export default function Analyze() {
   const navigate = useNavigate();
   const { setPulls, setIsFetching } = usePullsStore();
-  const { url, setUrl, setPrPreview, setIsPrPreviewLoading } = usePrPreviewStore();
+  const { url, setUrl, setPrPreview, setIsPrPreviewLoading } =
+    usePrPreviewStore();
 
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([
     "security",
@@ -63,17 +64,13 @@ export default function Analyze() {
   return (
     <main className="h-full bg-bg-secondary">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-8 flex flex-col gap-6">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            Analyze a Pull Request
-          </h1>
-          <p className="text-sm text-text-secondary leading-relaxed">
-            Paste a GitHub PR URL below. Three specialized agents will review it
-            in parallel and post inline comments directly on the PR.
-          </p>
-        </div>
-
         <div className="flex flex-col gap-6 p-5 bg-bg-primary rounded-xl border border-border-subtle shadow-sm">
+          <div className="flex justify-center">
+            <Stepper current={0} size="sm" />
+          </div>
+
+          <hr className="border-border-subtle" />
+
           <PrInput
             url={url}
             handleChangePr={handleChangePr}

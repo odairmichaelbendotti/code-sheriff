@@ -7,7 +7,7 @@
 - Prefira soluções simples e diretas, sem over-engineering
 - Sempre que criar um arquivo novo, me informe o caminho e o motivo
 - Nunca crie um componente que não esteja listado na seção "Estrutura de componentes"
-- Nunca crie uma pasta `/components` global
+- Componentes globais reutilizáveis entre páginas ficam em `src/components/`
 
 ---
 
@@ -160,7 +160,9 @@ Cada página tem seus próprios componentes dentro da sua pasta. Componentes só
 
 **ViewCode** (`src/pages/ViewCode/`)
 
-- `index.tsx` — exibe o diff do PR (arquivos alterados com patch) e botão "Run AI Analysis". Recebe dados via `location.state` do React Router (`owner`, `repo`, `pull_number`, `files`). Sem componentes filhos.
+- `index.tsx` — exibe o diff do PR e botão "Run AI Analysis". Dados vêm do `usePrPreviewStore`.
+- `Stepper.tsx` — indicador visual de progresso das 3 etapas: Select PR → Review changes → AI Analysis. Recebe `current` (índice do step ativo).
+- `FileDiff.tsx` — accordion de um único arquivo alterado: header clicável com filename, status, adições/deleções e o diff colorido por linha quando expandido.
 
 **Results** (`src/pages/Results/`)
 
