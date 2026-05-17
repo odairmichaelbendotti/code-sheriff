@@ -1,7 +1,6 @@
-import { usePrPreviewStore } from "@/store/prPreview.store";
 import { usePullsStore, type Pull } from "@/store/pulls.store";
 import { useState } from "react";
-import { LuGitPullRequest, LuChevronDown, LuX, LuCode } from "react-icons/lu";
+import { LuGitPullRequest, LuChevronDown, LuX } from "react-icons/lu";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -17,13 +16,11 @@ function repoFromUrl(repositoryUrl: string) {
 interface PrInputProps {
   url: string;
   handleChangePr: (url: string) => void;
-  onViewChanges: () => void;
 }
 
-export default function PrInput({ url, handleChangePr, onViewChanges }: PrInputProps) {
+export default function PrInput({ url, handleChangePr }: PrInputProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { pulls, isFetching } = usePullsStore();
-  const { prPreview, isPrPreviewLoading } = usePrPreviewStore();
 
   function selectPR(pr: Pull) {
     handleChangePr(pr.html_url);
@@ -66,30 +63,13 @@ export default function PrInput({ url, handleChangePr, onViewChanges }: PrInputP
         )}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => handleChangePr(e.target.value)}
-          placeholder="https://github.com/owner/repo/pull/42"
-          className="flex-1 h-10 px-3.5 rounded-lg border border-border-default bg-bg-secondary text-text-primary text-sm placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-        />
-        {isPrPreviewLoading && (
-          <div className="flex items-center justify-center h-10 w-10 shrink-0">
-            <span className="size-4 rounded-full border-2 border-text-tertiary border-t-transparent animate-spin" />
-          </div>
-        )}
-        {!isPrPreviewLoading && prPreview && (
-          <button
-            type="button"
-            onClick={onViewChanges}
-            className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-border-default hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors cursor-pointer shrink-0"
-          >
-            <LuCode size={14} />
-            <span className="hidden sm:inline">View changes</span>
-          </button>
-        )}
-      </div>
+      <input
+        type="text"
+        value={url}
+        onChange={(e) => handleChangePr(e.target.value)}
+        placeholder="https://github.com/owner/repo/pull/42"
+        className="h-10 px-3.5 rounded-lg border border-border-default bg-bg-secondary text-text-primary text-sm placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
+      />
 
       <p className="text-xs text-text-tertiary">
         Requires access to the repository. Private repos use your GitHub token.
