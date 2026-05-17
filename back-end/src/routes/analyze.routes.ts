@@ -7,5 +7,11 @@ export const analyzeRouter = Router();
 analyzeRouter.post(
   "/analyze/preview",
   authMiddleware,
-  analyzeController.analyze,
+  analyzeController.getChangedFiles,
+);
+
+analyzeRouter.post(
+  "/analyze/content",
+  authMiddleware,
+  analyzeController.getFileContet,
 );

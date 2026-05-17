@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 
-export async function getPullChangedFiles({
+export async function getChangedFiles({
   owner,
   repo,
   prNumber,
