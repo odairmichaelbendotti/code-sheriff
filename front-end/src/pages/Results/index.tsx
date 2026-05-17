@@ -10,8 +10,11 @@ import {
   LuCircleCheck,
   LuCircleAlert,
   LuOctagon,
+  LuActivity,
+  LuList,
 } from "react-icons/lu";
 import FindingCard, { type Finding } from "./FindingCard";
+import AnalysisStream from "./AnalysisStream";
 import Stepper from "@/components/Stepper";
 
 // TODO: replace with real data from backend
@@ -151,9 +154,12 @@ function getVerdict(critical: number, warning: number) {
 
 const SEVERITY_ORDER = { critical: 0, warning: 1, suggestion: 2 };
 
+type View = "stream" | "results";
+
 export default function Results() {
   const { id: _id } = useParams();
   const [activeAgent, setActiveAgent] = useState<AgentFilter>("all");
+  const [view, setView] = useState<View>("stream");
 
   const findings = MOCK_FINDINGS;
 
@@ -192,6 +198,39 @@ export default function Results() {
           <div className="w-16 shrink-0 hidden sm:block" />
         </div>
 
+        {/* View toggle */}
+        <div className="flex items-center gap-2 p-1 rounded-lg bg-bg-tertiary self-start">
+          <button
+            type="button"
+            onClick={() => setView("stream")}
+            className={[
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              view === "stream"
+                ? "bg-bg-primary text-text-primary shadow-sm"
+                : "text-text-tertiary hover:text-text-secondary",
+            ].join(" ")}
+          >
+            <LuActivity size={12} />
+            Agent stream
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("results")}
+            className={[
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              view === "results"
+                ? "bg-bg-primary text-text-primary shadow-sm"
+                : "text-text-tertiary hover:text-text-secondary",
+            ].join(" ")}
+          >
+            <LuList size={12} />
+            Results
+          </button>
+        </div>
+
+        {view === "stream" && <AnalysisStream />}
+
+        {view === "results" && <>
         {/* Hero */}
         <div
           className={`rounded-2xl border ${verdict.border} ${verdict.bg} p-6 flex flex-col gap-5`}
@@ -324,6 +363,7 @@ export default function Results() {
             </div>
           )}
         </div>
+        </>}
       </div>
     </main>
   );
