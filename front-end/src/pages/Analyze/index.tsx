@@ -16,7 +16,7 @@ export type Agent = "security" | "performance" | "quality";
 export default function Analyze() {
   const navigate = useNavigate();
   const { setPulls, setIsFetching } = usePullsStore();
-  const { url, setUrl, setPrPreview, setIsPrPreviewLoading } =
+  const { url, setUrl, setPrPreview, setIsPrPreviewLoading, isPrPreviewLoading } =
     usePrPreviewStore();
 
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([
@@ -39,26 +39,29 @@ export default function Analyze() {
       .finally(() => setIsFetching(false));
   }, []);
 
-  async function handleChangePr(newUrl: string) {
+  function handleChangePr(newUrl: string) {
     setUrl(newUrl);
     setPrPreview(null);
-
-    if (!PR_URL_REGEX.test(newUrl.trim())) return;
-
-    setIsPrPreviewLoading(true);
-    defaultFetch({
-      endpoint: "/api/analyze/preview",
-      method: "POST",
-      credentials: "include",
-      body: { url: newUrl },
-    })
-      .then((response) => setPrPreview(response as ChangedFiles))
-      .catch((err) => console.log(err))
-      .finally(() => setIsPrPreviewLoading(false));
   }
 
-  function handleAnalyze() {
-    // TODO: trigger analysis
+  async function handleAnalyze() {
+    if (!isValidUrl) return;
+
+    setIsPrPreviewLoading(true);
+    try {
+      const response = await defaultFetch({
+        endpoint: "/api/analyze/preview",
+        method: "POST",
+        credentials: "include",
+        body: { url },
+      });
+      setPrPreview(response as ChangedFiles);
+      navigate("/app/view");
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsPrPreviewLoading(false);
+    }
   }
 
   return (
@@ -74,7 +77,6 @@ export default function Analyze() {
           <PrInput
             url={url}
             handleChangePr={handleChangePr}
-            onViewChanges={() => navigate("/app/view")}
           />
 
           <hr className="border-border-subtle" />
@@ -97,11 +99,17 @@ export default function Analyze() {
           <button
             type="button"
             onClick={handleAnalyze}
-            disabled={!isValidUrl}
+            disabled={!isValidUrl || isPrPreviewLoading}
             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            Analyze
-            <LuArrowRight size={14} />
+            {isPrPreviewLoading ? (
+              <span className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            ) : (
+              <>
+                Analyze
+                <LuArrowRight size={14} />
+              </>
+            )}
           </button>
         </div>
 
