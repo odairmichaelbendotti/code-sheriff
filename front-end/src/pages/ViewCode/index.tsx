@@ -77,9 +77,13 @@ export default function ViewCode() {
           </div>
         </div>
 
+        <p className="text-xs text-text-tertiary -mb-1">
+          {prPreview.files.length} file{prPreview.files.length !== 1 ? "s" : ""} changed — click on a file to view its diff.
+        </p>
+
         <div className="flex flex-col gap-2">
-          {prPreview.files.map((file, index) => (
-            <FileDiff key={file.sha} file={file} defaultOpen={index === 0} />
+          {prPreview.files.map((file) => (
+            <FileDiff key={file.sha} file={file} defaultOpen={false} />
           ))}
         </div>
 

@@ -1,9 +1,9 @@
 import { LuLink, LuSearch, LuSparkles } from "react-icons/lu";
 
 const STEPS = [
-  { icon: LuLink, label: "Select Pull Request", optional: false },
-  { icon: LuSearch, label: "Review changes", optional: true },
-  { icon: LuSparkles, label: "AI Analysis", optional: false },
+  { icon: LuLink, label: "Select Pull Request" },
+  { icon: LuSearch, label: "Review changes" },
+  { icon: LuSparkles, label: "AI Analysis" },
 ];
 
 interface StepperProps {
@@ -45,25 +45,17 @@ export default function Stepper({ current, size = "md" }: StepperProps) {
                   >
                     {step.label}
                   </span>
-                  {step.optional && (
-                    <span className="text-[10px] text-text-tertiary leading-none">(optional)</span>
-                  )}
                 </div>
               )}
               {isSm && (
-                <div className="flex flex-col items-center gap-0.5">
-                  <span
-                    className={[
-                      "text-[11px] font-medium",
-                      isActive ? "text-text-secondary" : "text-text-tertiary",
-                    ].join(" ")}
-                  >
-                    {step.label}
-                  </span>
-                  {step.optional && (
-                    <span className="text-[9px] text-text-tertiary leading-none">(optional)</span>
-                  )}
-                </div>
+                <span
+                  className={[
+                    "text-[11px] font-medium",
+                    isActive ? "text-text-secondary" : "text-text-tertiary",
+                  ].join(" ")}
+                >
+                  {step.label}
+                </span>
               )}
             </div>
             {index < STEPS.length - 1 && (
