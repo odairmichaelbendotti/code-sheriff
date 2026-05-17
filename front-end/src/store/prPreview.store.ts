@@ -15,7 +15,7 @@ export interface ChangedFiles {
 }
 
 interface PrPreviewStore {
-  url: string;
+  url: string | null;
   setUrl: (url: string) => void;
   prPreview: ChangedFiles | null;
   setPrPreview: (prPreview: ChangedFiles | null) => void;
@@ -24,7 +24,7 @@ interface PrPreviewStore {
 }
 
 export const usePrPreviewStore = create<PrPreviewStore>((set) => ({
-  url: "",
+  url: null,
   setUrl: (url) => set({ url }),
   prPreview: null,
   setPrPreview: (prPreview) => set({ prPreview }),
