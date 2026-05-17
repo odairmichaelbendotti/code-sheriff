@@ -14,7 +14,7 @@ function repoFromUrl(repositoryUrl: string) {
 }
 
 interface PrInputProps {
-  url: string;
+  url: string | null;
   handleChangePr: (url: string) => void;
 }
 
@@ -65,7 +65,7 @@ export default function PrInput({ url, handleChangePr }: PrInputProps) {
 
       <input
         type="text"
-        value={url}
+        value={url ?? ""}
         onChange={(e) => handleChangePr(e.target.value)}
         placeholder="https://github.com/owner/repo/pull/42"
         className="h-10 px-3.5 rounded-lg border border-border-default bg-bg-secondary text-text-primary text-sm placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"

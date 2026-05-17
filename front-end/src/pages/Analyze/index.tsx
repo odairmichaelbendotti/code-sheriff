@@ -16,8 +16,13 @@ export type Agent = "security" | "performance" | "quality";
 export default function Analyze() {
   const navigate = useNavigate();
   const { setPulls, setIsFetching } = usePullsStore();
-  const { url, setUrl, setPrPreview, setIsPrPreviewLoading, isPrPreviewLoading } =
-    usePrPreviewStore();
+  const {
+    url,
+    setUrl,
+    setPrPreview,
+    setIsPrPreviewLoading,
+    isPrPreviewLoading,
+  } = usePrPreviewStore();
 
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([
     "security",
@@ -25,7 +30,7 @@ export default function Analyze() {
     "quality",
   ]);
 
-  const isValidUrl = PR_URL_REGEX.test(url.trim());
+  const isValidUrl = PR_URL_REGEX.test(url?.trim() ?? "");
 
   useEffect(() => {
     setIsFetching(true);
@@ -45,7 +50,7 @@ export default function Analyze() {
   }
 
   async function handleAnalyze() {
-    if (!isValidUrl) return;
+    if (!isValidUrl || !url) return;
 
     setIsPrPreviewLoading(true);
     try {
@@ -56,6 +61,7 @@ export default function Analyze() {
         body: { url },
       });
       setPrPreview(response as ChangedFiles);
+      console.log(response);
       navigate("/app/view");
     } catch (err) {
       console.log(err);
@@ -74,10 +80,7 @@ export default function Analyze() {
 
           <hr className="border-border-subtle" />
 
-          <PrInput
-            url={url}
-            handleChangePr={handleChangePr}
-          />
+          <PrInput url={url} handleChangePr={handleChangePr} />
 
           <hr className="border-border-subtle" />
 
