@@ -50,7 +50,8 @@ export default function Analyze() {
   }
 
   async function handleAnalyze() {
-    if (!isValidUrl || !url) return;
+    const currentUrl = url?.trim() ?? "";
+    if (!PR_URL_REGEX.test(currentUrl)) return;
 
     setIsPrPreviewLoading(true);
     try {
@@ -58,7 +59,7 @@ export default function Analyze() {
         endpoint: "/api/analyze/preview",
         method: "POST",
         credentials: "include",
-        body: { url },
+        body: { url: currentUrl },
       });
       setPrPreview(response as ChangedFiles);
       console.log(response);

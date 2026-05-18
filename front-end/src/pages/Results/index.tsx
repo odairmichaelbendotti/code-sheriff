@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, NavLink } from "react-router";
+import { useState, useEffect, useRef } from "react";
+import { useParams, NavLink, useLocation } from "react-router";
 import {
   LuGitPullRequest,
   LuArrowLeft,
@@ -17,73 +17,6 @@ import FindingCard, { type Finding } from "./FindingCard";
 import AnalysisStream from "./AnalysisStream";
 import Stepper from "@/components/Stepper";
 
-// TODO: replace with real data from backend
-const MOCK_FINDINGS: Finding[] = [
-  {
-    id: "1",
-    agent: "security",
-    severity: "critical",
-    file: "src/api/users.ts",
-    line: 42,
-    message:
-      "Raw user input interpolated directly into SQL query without sanitization.",
-    suggestion:
-      "Use parameterized queries or a query builder. Replace `db.query('SELECT * FROM users WHERE id = ' + userId)` with `db.query('SELECT * FROM users WHERE id = ?', [userId])`.",
-  },
-  {
-    id: "2",
-    agent: "security",
-    severity: "warning",
-    file: ".env.example",
-    line: 3,
-    message:
-      "A real secret key appears to be committed in the example env file.",
-    suggestion:
-      "Replace the actual value with a placeholder like `YOUR_SECRET_HERE`. Rotate the exposed secret immediately.",
-  },
-  {
-    id: "3",
-    agent: "performance",
-    severity: "warning",
-    file: "src/services/posts.ts",
-    line: 18,
-    message: "N+1 query detected: fetching author for each post inside a loop.",
-    suggestion:
-      "Batch the author lookups with a single `WHERE id IN (...)` query or use a DataLoader pattern to coalesce requests.",
-  },
-  {
-    id: "4",
-    agent: "performance",
-    severity: "warning",
-    file: "src/utils/transform.ts",
-    line: 77,
-    message:
-      "Array spread inside a hot loop creates unnecessary allocations on every iteration.",
-    suggestion:
-      "Pre-allocate the result array with `new Array(input.length)` and assign by index instead of spreading.",
-  },
-  {
-    id: "5",
-    agent: "quality",
-    severity: "suggestion",
-    file: "src/components/UserCard.tsx",
-    line: 12,
-    message:
-      "Component receives 8 props — consider grouping related ones into a single object.",
-    suggestion:
-      "Extract a `UserCardProps` interface that groups `firstName`, `lastName`, `avatarUrl` into a `user` object to reduce prop drilling.",
-  },
-  {
-    id: "6",
-    agent: "quality",
-    severity: "suggestion",
-    file: "src/hooks/useAuth.ts",
-    line: 34,
-    message: "Duplicated token refresh logic also present in `useSession.ts`.",
-    suggestion:
-      "Extract the refresh logic into a shared `refreshToken()` utility and import it from both hooks.",
-  },
-];
 
 type AgentFilter = "all" | "security" | "performance" | "quality";
 
@@ -157,11 +90,79 @@ const SEVERITY_ORDER = { critical: 0, warning: 1, suggestion: 2 };
 type View = "stream" | "results";
 
 export default function Results() {
-  const { id: _id } = useParams();
+  const { owner, repo, prNumber } = useParams();
+  const { state } = useLocation();
   const [activeAgent, setActiveAgent] = useState<AgentFilter>("all");
   const [view, setView] = useState<View>("stream");
+  const [streamFindings, setStreamFindings] = useState<Finding[]>([]);
+  const [isStreaming, setIsStreaming] = useState(true);
+  // acumula os findings sem causar re-render a cada item — garante que todos estão prontos no [DONE]
+  const findingsBuffer = useRef<Finding[]>([]);
 
-  const findings = MOCK_FINDINGS;
+  useEffect(() => {
+    // se não há dados passados via navigate, não faz nada
+    if (!state) return;
+
+    // extrai os arquivos e agentes que vieram do ViewCode via navigate state
+    const { files, agents } = state as { files: unknown[]; agents: string[] };
+
+    // abre a requisição POST para o backend — a conexão ficará aberta (SSE)
+    fetch(`${import.meta.env.VITE_SERVER_URL}/api/analyze/run`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ owner, repo, prNumber, files, agents }),
+    }).then((res) => {
+      // pega o leitor do corpo da resposta — permite ler os dados aos poucos
+      const reader = res.body!.getReader();
+
+      // converte os bytes recebidos em texto legível
+      const decoder = new TextDecoder();
+
+      // função recursiva que lê um chunk e chama ela mesma para ler o próximo
+      function read() {
+        reader.read().then(({ done, value }) => {
+          // done = true significa que a conexão foi fechada pelo servidor
+          if (done) {
+            setIsStreaming(false);
+            return;
+          }
+
+          // converte o chunk de bytes para string
+          const text = decoder.decode(value);
+
+          // cada linha do SSE começa com "data: ", filtra só essas
+          const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+
+          for (const line of lines) {
+            // remove o prefixo "data: " para ficar só com o conteúdo
+            const data = line.replace("data: ", "").trim();
+
+            // [DONE] é o sinal que o backend manda para indicar que terminou
+            if (data === "[DONE]") {
+              // move todos os findings do buffer para o estado de uma vez — garante que o render tem tudo
+              setStreamFindings(findingsBuffer.current);
+              setIsStreaming(false);
+              setView("results");
+              return;
+            }
+
+            // acumula no ref sem causar re-render a cada item
+            const finding = JSON.parse(data) as Omit<Finding, "id">;
+            findingsBuffer.current.push({ ...finding, id: crypto.randomUUID() });
+          }
+
+          // chama ela mesma para continuar lendo o próximo chunk
+          read();
+        });
+      }
+
+      // inicia a leitura
+      read();
+    });
+  }, []);
+
+  const findings = streamFindings;
 
   const stats = {
     critical: findings.filter((f) => f.severity === "critical").length,
@@ -228,7 +229,7 @@ export default function Results() {
           </button>
         </div>
 
-        {view === "stream" && <AnalysisStream />}
+        {view === "stream" && <AnalysisStream isStreaming={isStreaming} findings={streamFindings} />}
 
         {view === "results" && <>
         {/* Hero */}
@@ -244,15 +245,17 @@ export default function Results() {
               <div>
                 <p className="text-xs text-text-tertiary">Pull Request</p>
                 <h1 className="text-base font-semibold text-text-primary tracking-tight leading-snug">
-                  vercel/next.js
+                  {owner}/{repo}
                   <span className="ml-1.5 font-normal text-text-tertiary">
-                    #71234
+                    #{prNumber}
                   </span>
                 </h1>
               </div>
             </div>
             <a
-              href="#"
+              href={`https://github.com/${owner}/${repo}/pull/${prNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors shrink-0 mt-1"
             >
               GitHub

@@ -4,6 +4,7 @@ import { findAccountByUserId } from "../services/findAccountByUserId.js";
 import { getChangedFiles } from "../services/getChangedFiles.js";
 import { getFileContent } from "../services/getFileContent.js";
 import { getBranchName } from "../services/getBranchName.js";
+import { orchestrator } from "../agents/orchestrator.js";
 
 type PrFile = {
   filename: string;
@@ -43,12 +44,13 @@ export const analyzeController = {
       return res.status(500).json({ error: "Internal error" });
     }
   },
-  getFileContet: async (req: Request, res: Response) => {
-    const { owner, repo, prNumber, files } = req.body as {
+  run: async (req: Request, res: Response) => {
+    const { owner, repo, prNumber, files, agents } = req.body as {
       owner: string;
       repo: string;
       prNumber: string;
       files: PrFile[];
+      agents: string[];
     };
 
     if (!owner || !repo || !prNumber || !files) {
@@ -61,6 +63,11 @@ export const analyzeController = {
       return res.status(404).json({ error: "Account not found" });
     }
 
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     const branchName = await getBranchName({
       accessToken: account.accessToken,
       owner,
@@ -68,7 +75,6 @@ export const analyzeController = {
       prNumber,
     });
 
-    // content é o conteúdo inteiro e diff é o patch, ou seja, as linhas adicionadas e removidas. O ideal é ter ambos para fazer uma análise mais completa, mas se for necessário escolher um, o conteúdo inteiro pode fornecer mais contexto para a análise, enquanto o patch foca apenas nas mudanças específicas.
     const result = await Promise.all(
       files.map((file) =>
         getFileContent({
@@ -77,10 +83,14 @@ export const analyzeController = {
           repo,
           filename: file.filename,
           branchName,
-        }).then((content) => ({ ...content, patch: file.patch })),
+        }).then((content) => ({
+          filename: file.filename,
+          content: content.content,
+          patch: file.patch,
+        })),
       ),
     );
 
-    res.status(200).json(result);
+    await orchestrator(result, agents as ("security" | "performance" | "quality")[], res);
   },
 };
