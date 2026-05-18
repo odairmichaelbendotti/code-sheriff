@@ -11,7 +11,7 @@ analyzeRouter.post(
 );
 
 analyzeRouter.post(
-  "/analyze/content",
+  "/analyze/run",
   authMiddleware,
-  analyzeController.getFileContet,
+  analyzeController.run,
 );

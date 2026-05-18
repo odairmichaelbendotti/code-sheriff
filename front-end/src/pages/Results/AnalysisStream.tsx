@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { LuShieldAlert, LuZap, LuSparkles, LuCircleCheck, LuLoader } from "react-icons/lu";
+import type { Finding } from "./FindingCard";
 
 interface StreamEntry {
   agent: "security" | "performance" | "quality";
   text: string;
   done?: boolean;
+}
+
+interface AnalysisStreamProps {
+  isStreaming: boolean;
+  findings: Finding[];
 }
 
 const MOCK_STREAM: StreamEntry[] = [
@@ -31,19 +37,18 @@ const AGENT_CONFIG = {
   quality: { label: "Quality", icon: LuSparkles, color: "text-emerald-500", bg: "bg-emerald-500/8", border: "border-emerald-500/20" },
 } as const;
 
-export default function AnalysisStream() {
+export default function AnalysisStream({ isStreaming, findings }: AnalysisStreamProps) {
   const [visibleCount, setVisibleCount] = useState(0);
-  const [done, setDone] = useState(false);
+  const done = !isStreaming;
 
   const agentsDone = {
-    security: MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "security" && e.done),
-    performance: MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "performance" && e.done),
-    quality: MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "quality" && e.done),
+    security: !isStreaming || MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "security" && e.done),
+    performance: !isStreaming || MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "performance" && e.done),
+    quality: !isStreaming || MOCK_STREAM.slice(0, visibleCount).some((e) => e.agent === "quality" && e.done),
   };
 
   useEffect(() => {
     if (visibleCount >= MOCK_STREAM.length) {
-      setDone(true);
       return;
     }
     const delay = MOCK_STREAM[visibleCount]?.done ? 600 : 400;
@@ -102,20 +107,37 @@ export default function AnalysisStream() {
         </div>
 
         <div className="max-h-72 overflow-y-auto px-4 py-3 flex flex-col gap-2.5">
-          {MOCK_STREAM.slice(0, visibleCount).map((entry, i) => {
-            const cfg = AGENT_CONFIG[entry.agent];
-            const Icon = cfg.icon;
-            return (
-              <div key={i} className="flex items-start gap-2.5">
-                <Icon size={13} className={`${cfg.color} shrink-0 mt-0.5`} />
-                <div className="flex-1 min-w-0">
-                  <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
-                  <p className="text-xs text-text-secondary leading-relaxed mt-0.5">{entry.text}</p>
-                </div>
-                {entry.done && <LuCircleCheck size={12} className={`${cfg.color} shrink-0 mt-0.5`} />}
-              </div>
-            );
-          })}
+          {done
+            ? findings.map((finding, i) => {
+                const cfg = AGENT_CONFIG[finding.agent];
+                const Icon = cfg.icon;
+                return (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <Icon size={13} className={`${cfg.color} shrink-0 mt-0.5`} />
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
+                      <p className="text-xs text-text-secondary leading-relaxed mt-0.5">
+                        {finding.file}:{finding.line} — {finding.message}
+                      </p>
+                    </div>
+                    <LuCircleCheck size={12} className={`${cfg.color} shrink-0 mt-0.5`} />
+                  </div>
+                );
+              })
+            : MOCK_STREAM.slice(0, visibleCount).map((entry, i) => {
+                const cfg = AGENT_CONFIG[entry.agent];
+                const Icon = cfg.icon;
+                return (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <Icon size={13} className={`${cfg.color} shrink-0 mt-0.5`} />
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
+                      <p className="text-xs text-text-secondary leading-relaxed mt-0.5">{entry.text}</p>
+                    </div>
+                    {entry.done && <LuCircleCheck size={12} className={`${cfg.color} shrink-0 mt-0.5`} />}
+                  </div>
+                );
+              })}
         </div>
       </div>
     </div>

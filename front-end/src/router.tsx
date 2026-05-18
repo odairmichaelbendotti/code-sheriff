@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
             element: <ViewCode />,
           },
           {
-            path: "/app/results/:id",
+            path: "/app/results/:owner/:repo/pull/:prNumber",
             element: <Results />,
           },
         ],

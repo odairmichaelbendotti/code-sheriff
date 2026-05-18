@@ -8,13 +8,27 @@ export default function ViewCode() {
   const navigate = useNavigate();
   const { prPreview } = usePrPreviewStore();
 
+  function handleRunAnalysis() {
+    const link = `${prPreview?.owner}/${prPreview?.repo}/pull/${prPreview?.prNumber}`;
+    navigate(`/app/results/${link}`, {
+      state: {
+        files: prPreview?.files,
+        agents: ["security", "performance", "quality"],
+      },
+    });
+  }
+
   if (!prPreview) {
     return (
       <main className="min-h-full bg-bg-secondary flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-center">
           <LuGitPullRequest size={32} className="text-text-tertiary" />
-          <p className="text-sm text-text-secondary font-medium">No PR selected</p>
-          <p className="text-xs text-text-tertiary">Go back and paste a valid PR URL first.</p>
+          <p className="text-sm text-text-secondary font-medium">
+            No PR selected
+          </p>
+          <p className="text-xs text-text-tertiary">
+            Go back and paste a valid PR URL first.
+          </p>
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -28,13 +42,18 @@ export default function ViewCode() {
     );
   }
 
-  const totalAdditions = prPreview.files.reduce((sum, f) => sum + f.additions, 0);
-  const totalDeletions = prPreview.files.reduce((sum, f) => sum + f.deletions, 0);
+  const totalAdditions = prPreview.files.reduce(
+    (sum, f) => sum + f.additions,
+    0,
+  );
+  const totalDeletions = prPreview.files.reduce(
+    (sum, f) => sum + f.deletions,
+    0,
+  );
 
   return (
     <main className="min-h-full bg-bg-secondary">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-8 flex flex-col gap-6">
-
         <div className="flex items-center justify-between gap-4">
           <button
             type="button"
@@ -50,6 +69,7 @@ export default function ViewCode() {
           <button
             type="button"
             className="flex items-center gap-2 h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors cursor-pointer shrink-0"
+            onClick={handleRunAnalysis}
           >
             <LuPlay size={13} />
             <span className="hidden sm:inline">Run AI Analysis</span>
@@ -58,14 +78,23 @@ export default function ViewCode() {
 
         <div className="flex flex-col gap-3 p-5 bg-bg-primary rounded-xl border border-border-subtle shadow-sm">
           <div className="flex items-center gap-2">
-            <LuGitPullRequest size={16} className="text-text-tertiary shrink-0" />
+            <LuGitPullRequest
+              size={16}
+              className="text-text-tertiary shrink-0"
+            />
             <h1 className="text-base font-semibold text-text-primary tracking-tight truncate">
               {prPreview.owner}/{prPreview.repo}
-              <span className="text-text-tertiary font-normal"> #{prPreview.prNumber}</span>
+              <span className="text-text-tertiary font-normal">
+                {" "}
+                #{prPreview.prNumber}
+              </span>
             </h1>
           </div>
           <div className="flex items-center gap-4 text-xs text-text-tertiary">
-            <span>{prPreview.files.length} file{prPreview.files.length !== 1 ? "s" : ""} changed</span>
+            <span>
+              {prPreview.files.length} file
+              {prPreview.files.length !== 1 ? "s" : ""} changed
+            </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2 h-2 rounded-sm bg-emerald-500/60" />
               {totalAdditions} additions
@@ -78,7 +107,8 @@ export default function ViewCode() {
         </div>
 
         <p className="text-xs text-text-tertiary -mb-1">
-          {prPreview.files.length} file{prPreview.files.length !== 1 ? "s" : ""} changed — click on a file to view its diff.
+          {prPreview.files.length} file{prPreview.files.length !== 1 ? "s" : ""}{" "}
+          changed — click on a file to view its diff.
         </p>
 
         <div className="flex flex-col gap-2">
@@ -86,7 +116,6 @@ export default function ViewCode() {
             <FileDiff key={file.sha} file={file} defaultOpen={false} />
           ))}
         </div>
-
       </div>
     </main>
   );
