@@ -12,6 +12,7 @@ import {
   LuOctagon,
   LuActivity,
   LuList,
+  LuFileCode,
 } from "react-icons/lu";
 import FindingCard, { type Finding } from "./FindingCard";
 import AnalysisStream from "./AnalysisStream";
@@ -183,6 +184,13 @@ export default function Results() {
     .filter((f) => activeAgent === "all" || f.agent === activeAgent)
     .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 
+  // agrupa findings por arquivo
+  const groupedByFile = filtered.reduce<Record<string, typeof filtered>>((acc, f) => {
+    if (!acc[f.file]) acc[f.file] = [];
+    acc[f.file].push(f);
+    return acc;
+  }, {});
+
   return (
     <main className="h-full bg-bg-secondary">
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-8 flex flex-col gap-8">
@@ -350,7 +358,7 @@ export default function Results() {
                 : `${AGENT_CONFIG[activeAgent].label} findings`}
             </span>
             <span className="text-xs text-text-tertiary">
-              {filtered.length} total
+              {filtered.length} total · {Object.keys(groupedByFile).length} {Object.keys(groupedByFile).length === 1 ? "file" : "files"}
             </span>
           </div>
 
@@ -359,9 +367,44 @@ export default function Results() {
               No findings for this agent.
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {filtered.map((f) => (
-                <FindingCard key={f.id} finding={f} />
+            <div className="flex flex-col gap-4">
+              {Object.entries(groupedByFile).map(([file, fileFindings]) => (
+                <div key={file} className="flex flex-col gap-0 rounded-xl border border-border-subtle overflow-hidden">
+                  {/* File header */}
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-bg-tertiary border-b border-border-subtle">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <LuFileCode size={13} className="text-text-tertiary shrink-0" />
+                      <span className="text-xs font-mono text-text-secondary truncate">{file}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                      {fileFindings.some((f) => f.severity === "critical") && (
+                        <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                          {fileFindings.filter((f) => f.severity === "critical").length}
+                        </span>
+                      )}
+                      {fileFindings.some((f) => f.severity === "warning") && (
+                        <span className="flex items-center gap-1 text-xs text-amber-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          {fileFindings.filter((f) => f.severity === "warning").length}
+                        </span>
+                      )}
+                      {fileFindings.some((f) => f.severity === "suggestion") && (
+                        <span className="flex items-center gap-1 text-xs text-text-tertiary">
+                          <span className="w-1.5 h-1.5 rounded-full bg-border-default" />
+                          {fileFindings.filter((f) => f.severity === "suggestion").length}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Findings dentro do arquivo */}
+                  <div className="flex flex-col divide-y divide-border-subtle">
+                    {fileFindings.map((f) => (
+                      <FindingCard key={f.id} finding={f} grouped />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}

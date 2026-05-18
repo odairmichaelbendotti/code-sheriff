@@ -7,6 +7,8 @@ export type Finding = {
   severity: "critical" | "warning" | "suggestion";
   message: string;
   suggestion: string;
+  code_snippet: { line: number; code: string; highlight: boolean }[];
+  code_fix: { type: "removed" | "added" | "context"; code: string }[];
 };
 
 export type FileContext = {
@@ -44,11 +46,30 @@ Each item must follow this exact format:
     "line": <line number as integer>,
     "severity": "critical" | "warning" | "suggestion",
     "message": "description of the issue",
-    "suggestion": "how to fix it"
+    "suggestion": "short explanation of the fix",
+    "code_fix": [
+      { "type": "context", "code": "// surrounding line for context" },
+      { "type": "removed", "code": "- the problematic line as it is" },
+      { "type": "added", "code": "+ the corrected line" },
+      { "type": "context", "code": "// surrounding line for context" }
+    ]
   }
 ]
 
+"code_fix" must show the diff: "removed" for the bad line, "added" for the fix, "context" for surrounding lines.
 If no issues are found, return an empty array: []`;
+}
+
+function extractSnippet(content: string, line: number, context = 3) {
+  const lines = content.split("\n");
+  const start = Math.max(0, line - 1 - context);
+  const end = Math.min(lines.length, line + context);
+
+  return lines.slice(start, end).map((code, i) => ({
+    line: start + i + 1,
+    code,
+    highlight: start + i + 1 === line,
+  }));
 }
 
 export async function securityAgent(files: FileContext[]): Promise<Finding[]> {
@@ -64,7 +85,12 @@ export async function securityAgent(files: FileContext[]): Promise<Finding[]> {
       const text = block?.type === "text" ? block.text : "";
 
       try {
-        return JSON.parse(text) as Finding[];
+        const findings = JSON.parse(text) as Omit<Finding, "code_snippet">[];
+        return findings.map((f) => ({
+          ...f,
+          code_snippet: extractSnippet(file.content, f.line),
+          code_fix: f.code_fix ?? [],
+        }));
       } catch {
         return [];
       }
