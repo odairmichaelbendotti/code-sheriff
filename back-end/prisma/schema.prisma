@@ -18,6 +18,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  analyses      Analysis[]
 
   @@unique([email])
   @@map("user")
@@ -69,4 +70,21 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Analysis {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  owner           String
+  repo            String
+  prNumber        Int
+  criticalCount   Int
+  warningCount    Int
+  suggestionCount Int
+  findings        Json
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@map("analysis")
 }

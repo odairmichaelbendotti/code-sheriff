@@ -24,6 +24,10 @@ export default function Analyze() {
   const isValidUrl = PR_URL_REGEX.test(url?.trim() ?? "");
 
   useEffect(() => {
+    document.title = "Analyze — CodeSheriff";
+  }, []);
+
+  useEffect(() => {
     setIsFetching(true);
     defaultFetch({
       endpoint: "/api/pulls",

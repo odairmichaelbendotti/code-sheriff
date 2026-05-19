@@ -12,3 +12,8 @@ analyzeRouter.post(
 
 analyzeRouter.post("/analyze/run", authMiddleware, analyzeController.run);
 
+analyzeRouter.get(
+  "/analyze/history",
+  authMiddleware,
+  analyzeController.history,
+);

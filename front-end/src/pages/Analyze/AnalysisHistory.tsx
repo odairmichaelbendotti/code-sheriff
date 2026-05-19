@@ -1,37 +1,17 @@
+import { useState, useEffect } from "react";
 import { LuGitPullRequest, LuClock, LuChevronRight } from "react-icons/lu";
+import { defaultFetch } from "@/utils/defaultFetch";
 
 interface Analysis {
   id: string;
+  owner: string;
   repo: string;
-  pr: number;
-  findings: { critical: number; warning: number; suggestion: number };
-  date: string;
+  prNumber: number;
+  criticalCount: number;
+  warningCount: number;
+  suggestionCount: number;
+  createdAt: string;
 }
-
-// TODO: replace with real data from backend
-const MOCK_ANALYSES: Analysis[] = [
-  {
-    id: "1",
-    repo: "vercel/next.js",
-    pr: 71234,
-    findings: { critical: 1, warning: 4, suggestion: 7 },
-    date: "2026-05-14",
-  },
-  {
-    id: "2",
-    repo: "facebook/react",
-    pr: 30891,
-    findings: { critical: 0, warning: 2, suggestion: 5 },
-    date: "2026-05-12",
-  },
-  // {
-  //   id: "3",
-  //   repo: "user/my-project",
-  //   pr: 15,
-  //   findings: { critical: 3, warning: 1, suggestion: 2 },
-  //   date: "2026-05-10",
-  // },
-];
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -40,12 +20,38 @@ function formatDate(dateStr: string) {
   });
 }
 
-function totalFindings(f: Analysis["findings"]) {
-  return f.critical + f.warning + f.suggestion;
+function totalFindings(a: Analysis) {
+  return a.criticalCount + a.warningCount + a.suggestionCount;
 }
 
+const INITIAL_VISIBLE = 4;
+const LOAD_MORE_COUNT = 5;
+
+const MOCK_ANALYSES: Analysis[] = [
+  { id: "m1", owner: "vercel", repo: "next.js", prNumber: 71234, criticalCount: 2, warningCount: 4, suggestionCount: 7, createdAt: "2026-05-14T10:00:00Z" },
+  { id: "m2", owner: "facebook", repo: "react", prNumber: 30891, criticalCount: 0, warningCount: 2, suggestionCount: 5, createdAt: "2026-05-13T09:00:00Z" },
+  { id: "m3", owner: "tailwindlabs", repo: "tailwindcss", prNumber: 1423, criticalCount: 1, warningCount: 0, suggestionCount: 3, createdAt: "2026-05-12T14:30:00Z" },
+  { id: "m4", owner: "prisma", repo: "prisma", prNumber: 5521, criticalCount: 0, warningCount: 0, suggestionCount: 0, createdAt: "2026-05-11T08:15:00Z" },
+  { id: "m5", owner: "vitejs", repo: "vite", prNumber: 8831, criticalCount: 0, warningCount: 3, suggestionCount: 2, createdAt: "2026-05-10T16:00:00Z" },
+  { id: "m6", owner: "expressjs", repo: "express", prNumber: 993, criticalCount: 3, warningCount: 1, suggestionCount: 0, createdAt: "2026-05-09T11:45:00Z" },
+];
+
 export default function AnalysisHistory() {
-  const analyses = MOCK_ANALYSES;
+  const [analyses, setAnalyses] = useState<Analysis[]>(MOCK_ANALYSES);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+
+  useEffect(() => {
+    defaultFetch<Analysis[]>({
+      endpoint: "/api/analyze/history",
+      method: "GET",
+      credentials: "include",
+    })
+      .then((data) => setAnalyses([...MOCK_ANALYSES, ...data]))
+      .catch(() => {});
+  }, []);
+
+  const visible = analyses.slice(0, visibleCount);
+  const hasMore = visibleCount < analyses.length;
 
   return (
     <div className="flex flex-col gap-3">
@@ -66,7 +72,7 @@ export default function AnalysisHistory() {
         </div>
       ) : (
         <ul className="flex flex-col gap-1.5">
-          {analyses.map((a) => (
+          {visible.map((a) => (
             <li key={a.id}>
               <button className="group w-full flex items-center gap-3 p-3.5 rounded-xl bg-bg-primary border border-border-subtle hover:border-border-default hover:shadow-sm transition-all text-left cursor-pointer">
                 <div className="w-8 h-8 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
@@ -76,33 +82,33 @@ export default function AnalysisHistory() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium text-text-primary truncate">
-                      {a.repo}
+                      {a.owner}/{a.repo}
                     </span>
                     <span className="text-xs text-text-tertiary shrink-0">
-                      #{a.pr}
+                      #{a.prNumber}
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                    {a.findings.critical > 0 && (
+                    {a.criticalCount > 0 && (
                       <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                        {a.findings.critical} critical
+                        {a.criticalCount} critical
                       </span>
                     )}
-                    {a.findings.warning > 0 && (
+                    {a.warningCount > 0 && (
                       <span className="flex items-center gap-1 text-xs text-amber-500">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                        {a.findings.warning}{" "}
-                        {a.findings.warning === 1 ? "warning" : "warnings"}
+                        {a.warningCount}{" "}
+                        {a.warningCount === 1 ? "warning" : "warnings"}
                       </span>
                     )}
-                    {a.findings.suggestion > 0 && (
+                    {a.suggestionCount > 0 && (
                       <span className="flex items-center gap-1 text-xs text-text-tertiary">
                         <span className="w-1.5 h-1.5 rounded-full bg-border-default shrink-0" />
-                        {a.findings.suggestion} suggestions
+                        {a.suggestionCount} suggestions
                       </span>
                     )}
-                    {totalFindings(a.findings) === 0 && (
+                    {totalFindings(a) === 0 && (
                       <span className="text-xs text-emerald-500 font-medium">
                         No issues found
                       </span>
@@ -113,7 +119,7 @@ export default function AnalysisHistory() {
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="hidden sm:flex items-center gap-1 text-xs text-text-tertiary">
                     <LuClock size={11} />
-                    {formatDate(a.date)}
+                    {formatDate(a.createdAt)}
                   </span>
                   <LuChevronRight
                     size={14}
@@ -124,6 +130,16 @@ export default function AnalysisHistory() {
             </li>
           ))}
         </ul>
+      )}
+
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((c) => c + LOAD_MORE_COUNT)}
+          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors text-center py-1 cursor-pointer"
+        >
+          View more ({analyses.length - visibleCount} remaining)
+        </button>
       )}
     </div>
   );

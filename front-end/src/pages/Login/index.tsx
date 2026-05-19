@@ -13,6 +13,10 @@ const AUTH_STEPS = [
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "CodeSheriff — AI Code Review for Pull Requests";
+  }, []);
   const [stepIndex, setStepIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);

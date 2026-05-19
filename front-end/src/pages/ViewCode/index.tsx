@@ -1,5 +1,5 @@
 import { usePrPreviewStore } from "@/store/prPreview.store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LuArrowLeft, LuGitPullRequest, LuPlay } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import FileDiff from "./FileDiff";
@@ -8,6 +8,13 @@ import Stepper from "@/components/Stepper";
 export default function ViewCode() {
   const navigate = useNavigate();
   const { prPreview } = usePrPreviewStore();
+
+  useEffect(() => {
+    const title = prPreview
+      ? `${prPreview.owner}/${prPreview.repo} #${prPreview.prNumber} — CodeSheriff`
+      : "Review Changes — CodeSheriff";
+    document.title = title;
+  }, [prPreview]);
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
 
   function handleRunAnalysis() {

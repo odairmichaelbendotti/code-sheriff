@@ -92,6 +92,10 @@ type View = "stream" | "results";
 export default function Results() {
   const { owner, repo, prNumber } = useParams();
   const { state } = useLocation();
+
+  useEffect(() => {
+    document.title = `${owner}/${repo} #${prNumber} — CodeSheriff`;
+  }, [owner, repo, prNumber]);
   const [activeAgent, setActiveAgent] = useState<AgentFilter>("all");
   const [view, setView] = useState<View>("stream");
   const [streamFindings, setStreamFindings] = useState<Finding[]>([]);

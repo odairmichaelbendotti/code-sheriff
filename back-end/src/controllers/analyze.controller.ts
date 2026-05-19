@@ -5,6 +5,7 @@ import { getChangedFiles } from "../services/getChangedFiles.js";
 import { getFileContent } from "../services/getFileContent.js";
 import { getBranchName } from "../services/getBranchName.js";
 import { orchestrator } from "../agents/orchestrator.js";
+import { prisma } from "../lib/prisma.js";
 
 type PrFile = {
   filename: string;
@@ -74,7 +75,8 @@ export const analyzeController = {
       prNumber,
     });
 
-    const CODE_EXTENSIONS = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|env|toml)$/i;
+    const CODE_EXTENSIONS =
+      /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|env|toml)$/i;
     const codeFiles = files.filter(
       (f) => CODE_EXTENSIONS.test(f.filename) && f.status !== "removed",
     );
@@ -95,6 +97,34 @@ export const analyzeController = {
       ),
     );
 
-    await orchestrator(result, res);
+    await orchestrator(result, res, {
+      userId: req.session.userId,
+      owner,
+      repo,
+      prNumber,
+    });
+  },
+  history: async (req: Request, res: Response) => {
+    try {
+      const analyses = await prisma.analysis.findMany({
+        where: { userId: req.session.userId },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          owner: true,
+          repo: true,
+          prNumber: true,
+          criticalCount: true,
+          warningCount: true,
+          suggestionCount: true,
+          findings: true,
+          createdAt: true,
+        },
+      });
+
+      return res.status(200).json(analyses);
+    } catch (error) {
+      return res.status(500).json({ error: "Internal error" });
+    }
   },
 };
