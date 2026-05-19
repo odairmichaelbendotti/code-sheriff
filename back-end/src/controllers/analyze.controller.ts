@@ -76,10 +76,28 @@ export const analyzeController = {
     });
 
     const CODE_EXTENSIONS =
-      /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|env|toml)$/i;
-    const codeFiles = files.filter(
-      (f) => CODE_EXTENSIONS.test(f.filename) && f.status !== "removed",
-    );
+      /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|toml)$/i;
+
+    const ENV_FILES = /^\.env(\..+)?$/i;
+
+    const BLOCKED_FILES = new Set([
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      "Cargo.lock",
+      "composer.lock",
+      "Gemfile.lock",
+    ]);
+
+    const BLOCKED_EXTENSIONS = /\.(md|mdx|txt|png|jpg|jpeg|gif|svg|ico|pdf|zip|tar|gz|woff|woff2|ttf|eot)$/i;
+
+    const codeFiles = files.filter((f) => {
+      if (f.status === "removed") return false;
+      const basename = f.filename.split("/").pop() ?? f.filename;
+      if (BLOCKED_FILES.has(basename)) return false;
+      if (BLOCKED_EXTENSIONS.test(f.filename)) return false;
+      return CODE_EXTENSIONS.test(f.filename) || ENV_FILES.test(basename);
+    });
 
     const result = await Promise.all(
       codeFiles.map((file) =>
@@ -93,6 +111,7 @@ export const analyzeController = {
           filename: file.filename,
           content: content.content,
           patch: file.patch,
+          status: file.status,
         })),
       ),
     );

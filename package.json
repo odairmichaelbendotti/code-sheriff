@@ -1,0 +1,29 @@
+{
+  "name": "code-sheriff",
+  "version": "1.0.0",
+  "description": "AI agent that reviews GitHub Pull Requests in real-time",
+  "private": true,
+  "workspaces": [
+    "front-end",
+    "back-end"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=front-end",
+    "dev:backend": "npm run dev --workspace=back-end",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/odairmichaelbendotti/code-sheriff.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/odairmichaelbendotti/code-sheriff/issues"
+  },
+  "homepage": "https://github.com/odairmichaelbendotti/code-sheriff#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

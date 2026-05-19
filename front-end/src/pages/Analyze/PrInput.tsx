@@ -72,7 +72,7 @@ export default function PrInput({ url, handleChangePr }: PrInputProps) {
       />
 
       <p className="text-xs text-text-tertiary">
-        Requires access to the repository. Private repos use your GitHub token.
+        Public and private repositories are supported — your GitHub token is used to authenticate access.
       </p>
 
       {dropdownOpen && (

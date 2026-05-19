@@ -27,17 +27,8 @@ function totalFindings(a: Analysis) {
 const INITIAL_VISIBLE = 4;
 const LOAD_MORE_COUNT = 5;
 
-const MOCK_ANALYSES: Analysis[] = [
-  { id: "m1", owner: "vercel", repo: "next.js", prNumber: 71234, criticalCount: 2, warningCount: 4, suggestionCount: 7, createdAt: "2026-05-14T10:00:00Z" },
-  { id: "m2", owner: "facebook", repo: "react", prNumber: 30891, criticalCount: 0, warningCount: 2, suggestionCount: 5, createdAt: "2026-05-13T09:00:00Z" },
-  { id: "m3", owner: "tailwindlabs", repo: "tailwindcss", prNumber: 1423, criticalCount: 1, warningCount: 0, suggestionCount: 3, createdAt: "2026-05-12T14:30:00Z" },
-  { id: "m4", owner: "prisma", repo: "prisma", prNumber: 5521, criticalCount: 0, warningCount: 0, suggestionCount: 0, createdAt: "2026-05-11T08:15:00Z" },
-  { id: "m5", owner: "vitejs", repo: "vite", prNumber: 8831, criticalCount: 0, warningCount: 3, suggestionCount: 2, createdAt: "2026-05-10T16:00:00Z" },
-  { id: "m6", owner: "expressjs", repo: "express", prNumber: 993, criticalCount: 3, warningCount: 1, suggestionCount: 0, createdAt: "2026-05-09T11:45:00Z" },
-];
-
 export default function AnalysisHistory() {
-  const [analyses, setAnalyses] = useState<Analysis[]>(MOCK_ANALYSES);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
   useEffect(() => {
@@ -46,7 +37,7 @@ export default function AnalysisHistory() {
       method: "GET",
       credentials: "include",
     })
-      .then((data) => setAnalyses([...MOCK_ANALYSES, ...data]))
+      .then(setAnalyses)
       .catch(() => {});
   }, []);
 
