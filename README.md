@@ -22,9 +22,11 @@ Log in with your GitHub account, pick one of your open Pull Requests, inspect th
 ## Features
 
 - 🔐 **GitHub OAuth integration** — authenticates with your account and automatically lists all your open Pull Requests
+- 🔒 **Public and private repositories** — works with any repo you have access to, using your GitHub token
 - 👁️ **Visual diff viewer** — shows added and removed lines per file with syntax highlighting, with expand/collapse all
 - ⚡ **Real-time AI analysis** — findings stream live to the screen as Claude processes the code, no waiting for a final blob of text
 - 🔍 **Three analysis dimensions** — security vulnerabilities, performance bottlenecks, and code quality issues in a single agent call
+- 🧠 **Smart file filtering** — only real code files are sent to the AI; documentation, lockfiles, images, and other non-code files are automatically excluded
 - ⚖️ **Verdict system** — `Blocked`, `Review needed`, or `Looks good` based on critical issues and warnings found
 - 📂 **Grouped report** — findings organized by file, filterable by dimension (security / performance / quality)
 - 🧹 **Smart deduplication** — double deduplication by exact file/line/severity and by semantic message similarity, keeping the report clean and actionable
@@ -100,12 +102,10 @@ VITE_SERVER_URL=http://localhost:3000
 
 ### 3. Install dependencies
 
-```bash
-# Backend
-cd back-end && npm install
+From the root of the project — installs dependencies for both frontend and backend:
 
-# Frontend
-cd ../front-end && npm install
+```bash
+npm install
 ```
 
 ### 4. Run database migrations
@@ -113,16 +113,22 @@ cd ../front-end && npm install
 ```bash
 cd back-end
 npx prisma migrate deploy
+cd ..
 ```
 
 ### 5. Start the servers
 
-```bash
-# Backend (port 3000)
-cd back-end && npm run dev
+From the root, start both servers with a single command:
 
-# Frontend (port 5173)
-cd front-end && npm run dev
+```bash
+npm run dev
+```
+
+Or start them individually:
+
+```bash
+npm run dev:frontend   # React app at http://localhost:5173
+npm run dev:backend    # Express API at http://localhost:3000
 ```
 
 Open [http://localhost:5173](http://localhost:5173) and log in with your GitHub account.
