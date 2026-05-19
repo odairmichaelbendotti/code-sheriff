@@ -18,7 +18,9 @@ export async function defaultFetch<T = unknown>({
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const body = await response.json().catch(() => null);
+    const message = body?.error ?? `API Error: ${response.status} ${response.statusText}`;
+    throw new Error(message);
   }
 
   return response.json();

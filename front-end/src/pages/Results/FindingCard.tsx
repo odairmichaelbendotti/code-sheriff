@@ -79,6 +79,7 @@ const AGENT_CONFIG: Record<
 
 export default function FindingCard({ finding, grouped = false }: FindingCardProps) {
   const [expanded, setExpanded] = useState(false);
+
   const sev = SEVERITY_CONFIG[finding.severity];
   const agent = AGENT_CONFIG[finding.agent];
   const AgentIcon = agent.icon;
@@ -92,7 +93,6 @@ export default function FindingCard({ finding, grouped = false }: FindingCardPro
         onClick={() => setExpanded((v) => !v)}
         className="w-full flex items-start text-left cursor-pointer hover:bg-bg-secondary/50 transition-colors duration-150"
       >
-        {/* borda colorida à esquerda indicando severidade */}
         <div className={`w-1 self-stretch shrink-0 ${sev.dot}`} />
         <div className="flex items-start gap-3 p-4 flex-1 min-w-0">
           <div className="flex-1 min-w-0">
@@ -129,7 +129,6 @@ export default function FindingCard({ finding, grouped = false }: FindingCardPro
 
       {expanded && (
         <div className={`border-t ${sev.border}`}>
-          {/* Code snippet */}
           {finding.code_snippet?.length > 0 && (
             <div className="overflow-x-auto bg-bg-secondary font-mono text-xs">
               <table className="w-full border-collapse">
@@ -147,7 +146,6 @@ export default function FindingCard({ finding, grouped = false }: FindingCardPro
                       </td>
                     </tr>
                   ))}
-                  {/* Inline comment row */}
                   <tr className={`${sev.bg} border-t ${sev.border}`}>
                     <td className={`px-3 py-2 border-r ${sev.border}`} />
                     <td className="px-3 py-2">
@@ -169,7 +167,6 @@ export default function FindingCard({ finding, grouped = false }: FindingCardPro
             </div>
           )}
 
-          {/* Suggestion text */}
           <div className="px-4 py-3 border-t border-border-subtle">
             <p className="text-xs font-medium text-text-secondary mb-1">
               Suggestion
@@ -179,7 +176,6 @@ export default function FindingCard({ finding, grouped = false }: FindingCardPro
             </p>
           </div>
 
-          {/* Diff */}
           {finding.code_fix?.length > 0 && (
             <div className="border-t border-border-subtle overflow-x-auto bg-bg-secondary font-mono text-xs">
               <div className="px-3 py-1.5 border-b border-border-subtle">

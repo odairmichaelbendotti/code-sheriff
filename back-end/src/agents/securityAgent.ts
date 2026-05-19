@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { runAgent } from "./runAgent.js";
 
 export type Finding = {
   agent: "security" | "performance" | "quality";
@@ -17,17 +17,36 @@ export type FileContext = {
   patch: string | undefined;
 };
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function buildPrompt(file: FileContext): string {
-  return `You are a security code review agent. Analyze the code below and identify security vulnerabilities.
+  return `You are an expert security engineer performing a code review. Your job is to find REAL, CONCRETE security vulnerabilities in the code — not theoretical risks or style issues.
 
-Focus on:
-- SQL injection, NoSQL injection
-- Exposed secrets, API keys, tokens
-- OWASP Top 10 vulnerabilities
-- Insecure authentication or authorization
-- Sensitive data exposure
+SEVERITY GUIDE:
+- critical: exploitable vulnerability that can lead to data breach, RCE, authentication bypass, or privilege escalation
+- warning: bad practice that creates a meaningful attack surface (e.g. missing input validation, weak crypto, exposed token)
+- suggestion: minor hardening improvement worth making but not immediately dangerous
+
+ONLY report findings that:
+1. Have a specific, identifiable line number where the problem exists
+2. Are caused by actual code in this file (not hypothetical future code)
+3. Would be flagged in a professional pentest or security audit
+
+DO NOT report:
+- Generic advice like "add input validation" without pointing to a specific vulnerable line
+- Issues that require assumptions about code outside this file
+- Style issues or missing documentation
+
+Focus areas:
+- eval() or Function() with user-controlled input
+- SQL/NoSQL/LDAP/command injection via string concatenation or template literals
+- Hardcoded secrets, tokens, passwords, or private keys
+- Unsafe deserialization
+- Missing authentication or authorization checks on sensitive operations
+- Insecure cryptography (MD5, SHA1 for passwords, Math.random() for tokens)
+- XSS via innerHTML, document.write, or dangerouslySetInnerHTML
+- Path traversal via unsanitized file paths
+- SSRF via unsanitized URLs in fetch/axios/http calls
+- Prototype pollution
+- Exposed sensitive data in logs or error messages
 
 File: ${file.filename}
 
@@ -37,65 +56,27 @@ ${file.content}
 Diff (changed lines):
 ${file.patch ?? "No diff available"}
 
-Return ONLY a valid JSON array with no explanation, no markdown, no code blocks.
-Each item must follow this exact format:
+Return ONLY a valid JSON array. No markdown, no explanation, no code blocks outside the JSON.
 [
   {
     "agent": "security",
     "file": "${file.filename}",
-    "line": <line number as integer>,
+    "line": <exact line number as integer>,
     "severity": "critical" | "warning" | "suggestion",
-    "message": "description of the issue",
-    "suggestion": "short explanation of the fix",
+    "message": "Specific description of the vulnerability and why it is dangerous",
+    "suggestion": "Concrete fix with explanation of what to change and why it is safer",
     "code_fix": [
-      { "type": "context", "code": "// surrounding line for context" },
-      { "type": "removed", "code": "- the problematic line as it is" },
-      { "type": "added", "code": "+ the corrected line" },
-      { "type": "context", "code": "// surrounding line for context" }
+      { "type": "context", "code": "<line before the problem>" },
+      { "type": "removed", "code": "<the exact problematic line>" },
+      { "type": "added", "code": "<the corrected replacement line>" },
+      { "type": "context", "code": "<line after the problem>" }
     ]
   }
 ]
 
-"code_fix" must show the diff: "removed" for the bad line, "added" for the fix, "context" for surrounding lines.
-If no issues are found, return an empty array: []`;
-}
-
-function extractSnippet(content: string, line: number, context = 3) {
-  const lines = content.split("\n");
-  const start = Math.max(0, line - 1 - context);
-  const end = Math.min(lines.length, line + context);
-
-  return lines.slice(start, end).map((code, i) => ({
-    line: start + i + 1,
-    code,
-    highlight: start + i + 1 === line,
-  }));
+If no real vulnerabilities are found, return: []`;
 }
 
 export async function securityAgent(files: FileContext[]): Promise<Finding[]> {
-  const results = await Promise.all(
-    files.map(async (file) => {
-      const response = await client.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 4096,
-        messages: [{ role: "user", content: buildPrompt(file) }],
-      });
-
-      const block = response.content[0];
-      const text = block?.type === "text" ? block.text : "";
-
-      try {
-        const findings = JSON.parse(text) as Omit<Finding, "code_snippet">[];
-        return findings.map((f) => ({
-          ...f,
-          code_snippet: extractSnippet(file.content, f.line),
-          code_fix: f.code_fix ?? [],
-        }));
-      } catch {
-        return [];
-      }
-    }),
-  );
-
-  return results.flat();
+  return runAgent(files, buildPrompt);
 }
