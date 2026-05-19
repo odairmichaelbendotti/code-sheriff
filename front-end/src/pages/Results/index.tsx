@@ -18,7 +18,6 @@ import FindingCard, { type Finding } from "./FindingCard";
 import AnalysisStream from "./AnalysisStream";
 import Stepper from "@/components/Stepper";
 
-
 type AgentFilter = "all" | "security" | "performance" | "quality";
 
 const AGENT_CONFIG = {
@@ -97,68 +96,54 @@ export default function Results() {
   const [view, setView] = useState<View>("stream");
   const [streamFindings, setStreamFindings] = useState<Finding[]>([]);
   const [isStreaming, setIsStreaming] = useState(true);
-  // acumula os findings sem causar re-render a cada item — garante que todos estão prontos no [DONE]
+  const [isDone, setIsDone] = useState(false);
   const findingsBuffer = useRef<Finding[]>([]);
+  const fetchStarted = useRef(false);
 
   useEffect(() => {
-    // se não há dados passados via navigate, não faz nada
-    if (!state) return;
+    if (!state || fetchStarted.current) return;
+    fetchStarted.current = true;
 
-    // extrai os arquivos e agentes que vieram do ViewCode via navigate state
     const { files, agents } = state as { files: unknown[]; agents: string[] };
 
-    // abre a requisição POST para o backend — a conexão ficará aberta (SSE)
     fetch(`${import.meta.env.VITE_SERVER_URL}/api/analyze/run`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ owner, repo, prNumber, files, agents }),
     }).then((res) => {
-      // pega o leitor do corpo da resposta — permite ler os dados aos poucos
       const reader = res.body!.getReader();
-
-      // converte os bytes recebidos em texto legível
       const decoder = new TextDecoder();
 
-      // função recursiva que lê um chunk e chama ela mesma para ler o próximo
       function read() {
         reader.read().then(({ done, value }) => {
-          // done = true significa que a conexão foi fechada pelo servidor
           if (done) {
             setIsStreaming(false);
             return;
           }
 
-          // converte o chunk de bytes para string
           const text = decoder.decode(value);
-
-          // cada linha do SSE começa com "data: ", filtra só essas
           const lines = text.split("\n").filter((l) => l.startsWith("data: "));
 
           for (const line of lines) {
-            // remove o prefixo "data: " para ficar só com o conteúdo
             const data = line.replace("data: ", "").trim();
+            const event = JSON.parse(data) as { type: string; agent?: string; data?: object };
 
-            // [DONE] é o sinal que o backend manda para indicar que terminou
-            if (data === "[DONE]") {
-              // move todos os findings do buffer para o estado de uma vez — garante que o render tem tudo
+            if (event.type === "finding") {
+              const finding = event.data as Omit<Finding, "id">;
+              findingsBuffer.current.push({ ...finding, id: crypto.randomUUID() });
+            } else if (event.type === "done") {
               setStreamFindings(findingsBuffer.current);
               setIsStreaming(false);
-              setView("results");
-              return;
+              setIsDone(true);
+              setTimeout(() => setView("results"), 4500);
             }
-
-            // acumula no ref sem causar re-render a cada item
-            const finding = JSON.parse(data) as Omit<Finding, "id">;
-            findingsBuffer.current.push({ ...finding, id: crypto.randomUUID() });
           }
 
-          // chama ela mesma para continuar lendo o próximo chunk
           read();
         });
       }
 
-      // inicia a leitura
       read();
     });
   }, []);
@@ -184,7 +169,6 @@ export default function Results() {
     .filter((f) => activeAgent === "all" || f.agent === activeAgent)
     .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 
-  // agrupa findings por arquivo
   const groupedByFile = filtered.reduce<Record<string, typeof filtered>>((acc, f) => {
     if (!acc[f.file]) acc[f.file] = [];
     acc[f.file].push(f);
@@ -237,7 +221,15 @@ export default function Results() {
           </button>
         </div>
 
-        {view === "stream" && <AnalysisStream isStreaming={isStreaming} findings={streamFindings} />}
+        {view === "stream" && (
+          <AnalysisStream
+            isStreaming={isStreaming}
+            isDone={isDone}
+            findings={streamFindings}
+            agentCounts={agentCounts}
+            stats={stats}
+          />
+        )}
 
         {view === "results" && <>
         {/* Hero */}

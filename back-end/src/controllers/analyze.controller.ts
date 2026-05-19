@@ -45,12 +45,11 @@ export const analyzeController = {
     }
   },
   run: async (req: Request, res: Response) => {
-    const { owner, repo, prNumber, files, agents } = req.body as {
+    const { owner, repo, prNumber, files } = req.body as {
       owner: string;
       repo: string;
       prNumber: string;
       files: PrFile[];
-      agents: string[];
     };
 
     if (!owner || !repo || !prNumber || !files) {
@@ -75,8 +74,13 @@ export const analyzeController = {
       prNumber,
     });
 
+    const CODE_EXTENSIONS = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|env|toml)$/i;
+    const codeFiles = files.filter(
+      (f) => CODE_EXTENSIONS.test(f.filename) && f.status !== "removed",
+    );
+
     const result = await Promise.all(
-      files.map((file) =>
+      codeFiles.map((file) =>
         getFileContent({
           accessToken: account.accessToken!!,
           owner,
@@ -91,6 +95,6 @@ export const analyzeController = {
       ),
     );
 
-    await orchestrator(result, agents as ("security" | "performance" | "quality")[], res);
+    await orchestrator(result, res);
   },
 };

@@ -10,8 +10,5 @@ analyzeRouter.post(
   analyzeController.getChangedFiles,
 );
 
-analyzeRouter.post(
-  "/analyze/run",
-  authMiddleware,
-  analyzeController.run,
-);
+analyzeRouter.post("/analyze/run", authMiddleware, analyzeController.run);
+

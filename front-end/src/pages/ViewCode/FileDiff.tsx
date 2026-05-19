@@ -1,5 +1,5 @@
 import type { ChangedFiles } from "@/store/prPreview.store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LuChevronDown, LuFileCode } from "react-icons/lu";
 
 type File = ChangedFiles["files"][number];
@@ -44,10 +44,17 @@ function renderPatch(patch: string) {
 interface FileDiffProps {
   file: File;
   defaultOpen?: boolean;
+  forceOpen?: boolean | null;
 }
 
-export default function FileDiff({ file, defaultOpen = false }: FileDiffProps) {
+export default function FileDiff({ file, defaultOpen = false, forceOpen = null }: FileDiffProps) {
   const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (forceOpen !== null) {
+      setOpen(forceOpen);
+    }
+  }, [forceOpen]);
 
   return (
     <div className="rounded-xl border border-border-subtle bg-bg-primary overflow-hidden">

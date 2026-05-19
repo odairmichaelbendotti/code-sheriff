@@ -1,28 +1,30 @@
 import type { Response } from "express";
-import { securityAgent, type FileContext } from "./securityAgent.js";
+import { unifiedAgent } from "./unifiedAgent.js";
+import type { FileContext } from "./securityAgent.js";
 
-type AgentType = "security" | "performance" | "quality";
+type SSEEvent =
+  | { type: "agent_start"; agent: "unified" }
+  | { type: "agent_done"; agent: "unified" }
+  | { type: "finding"; data: object }
+  | { type: "done" };
+
+function send(res: Response, event: SSEEvent) {
+  res.write(`data: ${JSON.stringify(event)}\n\n`);
+}
 
 export async function orchestrator(
   files: FileContext[],
-  agents: AgentType[],
   res: Response,
 ): Promise<void> {
-  const tasks: Promise<void>[] = [];
+  send(res, { type: "agent_start", agent: "unified" });
 
-  // cada agente envia os findings conforme termina, sem esperar os outros
-  if (agents.includes("security")) {
-    tasks.push(
-      securityAgent(files).then((findings) => {
-        for (const finding of findings) {
-          res.write(`data: ${JSON.stringify(finding)}\n\n`);
-        }
-      }),
-    );
+  const findings = await unifiedAgent(files);
+
+  for (const finding of findings) {
+    send(res, { type: "finding", data: finding });
   }
 
-  await Promise.all(tasks);
-
-  res.write("data: [DONE]\n\n");
+  send(res, { type: "agent_done", agent: "unified" });
+  send(res, { type: "done" });
   res.end();
 }

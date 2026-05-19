@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LuArrowRight } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import PrInput from "./PrInput";
-import AgentSelector from "./AgentSelector";
 import AnalysisHistory from "./AnalysisHistory";
 import Stepper from "@/components/Stepper";
 import { usePullsStore, type Pull } from "@/store/pulls.store";
@@ -10,8 +9,6 @@ import { usePrPreviewStore, type ChangedFiles } from "@/store/prPreview.store";
 import { defaultFetch } from "@/utils/defaultFetch";
 
 const PR_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+$/;
-
-export type Agent = "security" | "performance" | "quality";
 
 export default function Analyze() {
   const navigate = useNavigate();
@@ -23,12 +20,6 @@ export default function Analyze() {
     setIsPrPreviewLoading,
     isPrPreviewLoading,
   } = usePrPreviewStore();
-
-  const [selectedAgents, setSelectedAgents] = useState<Agent[]>([
-    "security",
-    "performance",
-    "quality",
-  ]);
 
   const isValidUrl = PR_URL_REGEX.test(url?.trim() ?? "");
 
@@ -62,7 +53,6 @@ export default function Analyze() {
         body: { url: currentUrl },
       });
       setPrPreview(response as ChangedFiles);
-      console.log(response);
       navigate("/app/view");
     } catch (err) {
       console.log(err);
@@ -82,23 +72,6 @@ export default function Analyze() {
           <hr className="border-border-subtle" />
 
           <PrInput url={url} handleChangePr={handleChangePr} />
-
-          <hr className="border-border-subtle" />
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-text-primary">
-                Active agents
-              </span>
-              <span className="text-xs text-text-tertiary">
-                {selectedAgents.length} of 3 selected
-              </span>
-            </div>
-            <AgentSelector
-              selected={selectedAgents}
-              onChange={setSelectedAgents}
-            />
-          </div>
 
           <button
             type="button"

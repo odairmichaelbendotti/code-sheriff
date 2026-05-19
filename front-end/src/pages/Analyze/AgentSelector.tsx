@@ -3,8 +3,8 @@ import { LuZap, LuSparkles, LuCheck } from "react-icons/lu";
 import type { Agent } from "./index";
 
 interface AgentSelectorProps {
-  selected: Agent[];
-  onChange: (agents: Agent[]) => void;
+  selected: Agent;
+  onChange: (agent: Agent) => void;
 }
 
 const AGENTS: {
@@ -50,24 +50,15 @@ const AGENTS: {
 ];
 
 export default function AgentSelector({ selected, onChange }: AgentSelectorProps) {
-  function toggle(agentId: Agent) {
-    if (selected.includes(agentId)) {
-      if (selected.length === 1) return;
-      onChange(selected.filter((a) => a !== agentId));
-    } else {
-      onChange([...selected, agentId]);
-    }
-  }
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
       {AGENTS.map(({ id, label, description, icon: Icon, iconColor, iconBg, activeBorder, checkBg }) => {
-        const isActive = selected.includes(id);
+        const isActive = selected === id;
         return (
           <button
             key={id}
             type="button"
-            onClick={() => toggle(id)}
+            onClick={() => onChange(id)}
             className={[
               "relative flex flex-col gap-2.5 p-4 rounded-lg border text-left cursor-pointer select-none",
               "transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/30",
