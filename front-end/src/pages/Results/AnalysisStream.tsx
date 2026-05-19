@@ -78,20 +78,23 @@ function randomDelay(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export default function AnalysisStream({ isStreaming, isDone, findings, agentCounts, stats }: AnalysisStreamProps) {
-  const [log, setLog] = useState<{ text: string; category: "security" | "performance" | "quality" }[]>([]);
-  const [countdown, setCountdown] = useState(4);
-  const [elapsed, setElapsed] = useState(0);
-  const [spinnerFrame, setSpinnerFrame] = useState(0);
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const startedRef = useRef(false);
-  const logRef = useRef<HTMLDivElement>(null);
+const SHUFFLED = [...MESSAGES].sort(() => Math.random() - 0.5);
 
-  const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+export default function AnalysisStream({ isStreaming, isDone, findings, agentCounts, stats }: AnalysisStreamProps) {
+  const [log, setLog] = useState<typeof MESSAGES>([]);
+  const [elapsed, setElapsed] = useState(0);
+  const [countdown, setCountdown] = useState(4);
+  const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isStreaming || isDone) return;
-    const t = setInterval(() => setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length), 80);
+    let i = 0;
+    const t = setInterval(() => {
+      if (i < SHUFFLED.length) {
+        setLog((prev) => [...prev, SHUFFLED[i]]);
+        i++;
+      }
+    }, 3000);
     return () => clearInterval(t);
   }, [isStreaming, isDone]);
 
@@ -110,27 +113,6 @@ export default function AnalysisStream({ isStreaming, isDone, findings, agentCou
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
-
-  useEffect(() => {
-    if (!isStreaming || startedRef.current) return;
-    startedRef.current = true;
-    const shuffled = [...MESSAGES].sort(() => Math.random() - 0.5);
-    shuffled.forEach((msg, i) => {
-      const t = setTimeout(
-        () => setLog((prev) => [...prev, msg]),
-        500 + i * 3000,
-      );
-      timersRef.current.push(t);
-    });
-  }, [isStreaming]);
-
-  useEffect(() => {
-    if (isDone) timersRef.current.forEach(clearTimeout);
-  }, [isDone]);
-
-  useEffect(() => {
-    return () => timersRef.current.forEach(clearTimeout);
-  }, []);
 
   const verdict =
     stats.critical > 0
@@ -245,33 +227,28 @@ export default function AnalysisStream({ isStreaming, isDone, findings, agentCou
           {log.map((entry, i) => {
             const cfg = CATEGORY_CONFIG[entry.category];
             const Icon = cfg.icon;
+            const isLast = i === log.length - 1;
             return (
-              <div key={i} className="flex items-start gap-2 text-text-secondary">
+              <div key={i} className={`flex items-start gap-2 transition-opacity duration-300 ${isLast ? "text-accent" : "text-text-secondary"}`}>
                 <span className="text-text-tertiary select-none mt-px">›</span>
                 <Icon size={11} className={`${cfg.color} shrink-0 mt-0.5`} />
                 <span>{entry.text}</span>
+                {isLast && <LuLoader size={10} className="animate-spin shrink-0 mt-0.5 ml-1" />}
               </div>
             );
           })}
 
-          {isStreaming && (
-            <div className="flex items-center gap-2 text-accent mt-1">
-              <span className="select-none font-bold">{SPINNER_FRAMES[spinnerFrame]}</span>
-              <span>
-                {log.length > 0
-                  ? log[log.length - 1]?.text
-                  : "Sending code to analysis engine"}
-              </span>
+          {log.length === 0 && isStreaming && (
+            <div className="flex items-center gap-2 text-text-tertiary">
+              <LuLoader size={11} className="animate-spin shrink-0" />
+              <span>Starting analysis…</span>
             </div>
           )}
         </div>
 
-        {/* Progress bar */}
-        <div className="h-0.5 bg-bg-tertiary">
-          <div
-            className="h-full bg-accent transition-all duration-1000 ease-out"
-            style={{ width: `${Math.min((log.length / MESSAGES.length) * 90, 90)}%` }}
-          />
+        {/* Progress bar — pulses indefinitely while streaming */}
+        <div className="h-0.5 bg-bg-tertiary overflow-hidden">
+          <div className="h-full w-1/3 bg-accent animate-[slide_1.8s_ease-in-out_infinite]" />
         </div>
       </div>
 
