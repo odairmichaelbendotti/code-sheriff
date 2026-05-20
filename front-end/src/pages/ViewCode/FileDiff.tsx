@@ -1,6 +1,6 @@
 import type { ChangedFiles } from "@/store/prPreview.store";
 import { useEffect, useState } from "react";
-import { LuChevronDown, LuFileCode } from "react-icons/lu";
+import { LuChevronDown, LuFileCode, LuBan, LuShieldCheck } from "react-icons/lu";
 
 type File = ChangedFiles["files"][number];
 
@@ -45,9 +45,11 @@ interface FileDiffProps {
   file: File;
   defaultOpen?: boolean;
   forceOpen?: boolean | null;
+  analyzable?: boolean;
+  excludeReason?: string;
 }
 
-export default function FileDiff({ file, defaultOpen = false, forceOpen = null }: FileDiffProps) {
+export default function FileDiff({ file, defaultOpen = false, forceOpen = null, analyzable = true, excludeReason }: FileDiffProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   useEffect(() => {
@@ -57,17 +59,28 @@ export default function FileDiff({ file, defaultOpen = false, forceOpen = null }
   }, [forceOpen]);
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-primary overflow-hidden">
+    <div className={`rounded-xl border overflow-hidden ${analyzable ? "border-border-subtle bg-bg-primary" : "border-border-subtle bg-bg-primary opacity-50"}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-bg-secondary transition-colors cursor-pointer"
       >
         <LuFileCode size={14} className="text-text-tertiary shrink-0" />
-        <span className="text-sm text-text-primary font-mono truncate flex-1">
+        <span className={`text-sm font-mono truncate flex-1 ${analyzable ? "text-text-primary" : "text-text-tertiary"}`}>
           {file.filename}
         </span>
         <div className="flex items-center gap-2.5 shrink-0">
+          {analyzable ? (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <LuShieldCheck size={10} />
+              will be analyzed
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+              <LuBan size={10} />
+              excluded{excludeReason ? ` · ${excludeReason}` : ""}
+            </span>
+          )}
           <span className="text-xs text-emerald-600 font-medium">+{file.additions}</span>
           <span className="text-xs text-red-500 font-medium">-{file.deletions}</span>
           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusBadge(file.status)}`}>
