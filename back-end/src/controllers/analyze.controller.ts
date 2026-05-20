@@ -151,4 +151,23 @@ export const analyzeController = {
       return res.status(500).json({ error: "Internal error" });
     }
   },
+  deleteAnalysis: async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id as string;
+
+      const analysis = await prisma.analysis.findFirst({
+        where: { id, userId: req.session.userId },
+      });
+
+      if (!analysis) {
+        return res.status(404).json({ error: "Analysis not found" });
+      }
+
+      await prisma.analysis.delete({ where: { id } });
+
+      return res.status(200).json({ success: true });
+    } catch {
+      return res.status(500).json({ error: "Internal error" });
+    }
+  },
 };

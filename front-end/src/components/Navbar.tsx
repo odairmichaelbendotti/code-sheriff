@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { LuLogOut, LuUser, LuChevronDown } from "react-icons/lu";
+import { LuLogOut, LuUser, LuChevronDown, LuSun, LuMoon } from "react-icons/lu";
 import { signOut, useSession } from "@/lib/auth-client";
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() => localStorage.getItem("theme") === "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "");
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  return [dark, () => setDark((v) => !v)] as const;
+}
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -9,6 +20,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dark, toggleDark] = useDarkMode();
 
   async function handleLogout() {
     setDropdownOpen(false);
@@ -74,8 +86,16 @@ export default function Navbar() {
         </span>
       </NavLink>
 
-      {/* Avatar */}
-      <div className="flex items-center">
+      {/* Dark mode toggle + Avatar */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleDark}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-bg-secondary transition-colors cursor-pointer"
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {dark ? <LuSun size={15} /> : <LuMoon size={15} />}
+        </button>
         {/* Avatar dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button

@@ -17,3 +17,9 @@ analyzeRouter.get(
   authMiddleware,
   analyzeController.history,
 );
+
+analyzeRouter.delete(
+  "/analyze/history/:id",
+  authMiddleware,
+  analyzeController.deleteAnalysis,
+);

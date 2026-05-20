@@ -96,6 +96,7 @@ export default function Results() {
   useEffect(() => {
     document.title = `${owner}/${repo} #${prNumber} — CodeSheriff`;
   }, [owner, repo, prNumber]);
+
   const [activeAgent, setActiveAgent] = useState<AgentFilter>("all");
   const [view, setView] = useState<View>("stream");
   const [streamFindings, setStreamFindings] = useState<Finding[]>([]);
@@ -103,6 +104,17 @@ export default function Results() {
   const [isDone, setIsDone] = useState(false);
   const findingsBuffer = useRef<Finding[]>([]);
   const fetchStarted = useRef(false);
+
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (!link) return;
+    if (isStreaming && !isDone) {
+      link.href = "/favicon-analyzing.svg";
+    } else {
+      link.href = "/favicon.svg";
+    }
+    return () => { link.href = "/favicon.svg"; };
+  }, [isStreaming, isDone]);
 
   useEffect(() => {
     if (!state || fetchStarted.current) return;
