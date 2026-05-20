@@ -304,7 +304,7 @@ export default function ViewCode() {
             const { analyzable, reason } = getAnalysisStatus(file.filename, file.status);
             return (
               <FileDiff
-                key={file.sha}
+                key={file.filename}
                 file={file}
                 defaultOpen={false}
                 forceOpen={allOpen}

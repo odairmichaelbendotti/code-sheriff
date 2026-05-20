@@ -18,8 +18,7 @@ export async function authMiddleware(
     req.user = session.user;
     req.session = session.session;
     next();
-  } catch (error) {
-    console.log(error);
+  } catch {
     return res.status(500).json({ error: "Internal error" });
   }
 }

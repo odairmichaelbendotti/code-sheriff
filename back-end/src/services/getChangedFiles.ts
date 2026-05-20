@@ -25,9 +25,9 @@ export async function getChangedFiles({
     });
 
     const changedFiles = {
-      owner: owner,
-      repo: repo,
-      prNumber: prNumber,
+      owner,
+      repo,
+      prNumber,
       files: data.map((file) => ({
         filename: file.filename,
         status: file.status,
@@ -39,7 +39,7 @@ export async function getChangedFiles({
     };
 
     return changedFiles;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to fetch pull request files");
   }
 }

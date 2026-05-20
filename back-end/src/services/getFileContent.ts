@@ -41,8 +41,7 @@ export async function getFileContent({
     };
 
     return content;
-  } catch (error) {
-    console.log(error);
+  } catch {
     throw new Error("Failed to fetch file content");
   }
 }

@@ -6,7 +6,6 @@ export const userController = {
   pulls: async (req: Request, res: Response) => {
     try {
       const account = await findAccountByUserId(req.user.id);
-      console.log(account);
 
       if (!account) {
         return res.status(404).json({ error: "Account not found" });
@@ -19,7 +18,7 @@ export const userController = {
       const pulls = await getPullsByUser(account.accessToken);
 
       res.status(200).json(pulls);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Internal error" });
     }
   },

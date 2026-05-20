@@ -130,17 +130,21 @@ export default function Results() {
           const lines = text.split("\n").filter((l) => l.startsWith("data: "));
 
           for (const line of lines) {
-            const data = line.replace("data: ", "").trim();
-            const event = JSON.parse(data) as { type: string; agent?: string; data?: object };
+            try {
+              const data = line.replace("data: ", "").trim();
+              const event = JSON.parse(data) as { type: string; agent?: string; data?: object };
 
-            if (event.type === "finding") {
-              const finding = event.data as Omit<Finding, "id">;
-              findingsBuffer.current.push({ ...finding, id: crypto.randomUUID() });
-            } else if (event.type === "done") {
-              setStreamFindings(findingsBuffer.current);
-              setIsStreaming(false);
-              setIsDone(true);
-              setTimeout(() => setView("results"), 4500);
+              if (event.type === "finding") {
+                const finding = event.data as Omit<Finding, "id">;
+                findingsBuffer.current.push({ ...finding, id: crypto.randomUUID() });
+              } else if (event.type === "done") {
+                setStreamFindings(findingsBuffer.current);
+                setIsStreaming(false);
+                setIsDone(true);
+                setTimeout(() => setView("results"), 4500);
+              }
+            } catch {
+              // malformed SSE event — skip
             }
           }
 
@@ -152,24 +156,22 @@ export default function Results() {
     });
   }, []);
 
-  const findings = streamFindings;
-
   const stats = {
-    critical: findings.filter((f) => f.severity === "critical").length,
-    warning: findings.filter((f) => f.severity === "warning").length,
-    suggestion: findings.filter((f) => f.severity === "suggestion").length,
+    critical: streamFindings.filter((f) => f.severity === "critical").length,
+    warning: streamFindings.filter((f) => f.severity === "warning").length,
+    suggestion: streamFindings.filter((f) => f.severity === "suggestion").length,
   };
 
   const verdict = getVerdict(stats.critical, stats.warning);
   const VerdictIcon = verdict.icon;
 
   const agentCounts = {
-    security: findings.filter((f) => f.agent === "security").length,
-    performance: findings.filter((f) => f.agent === "performance").length,
-    quality: findings.filter((f) => f.agent === "quality").length,
+    security: streamFindings.filter((f) => f.agent === "security").length,
+    performance: streamFindings.filter((f) => f.agent === "performance").length,
+    quality: streamFindings.filter((f) => f.agent === "quality").length,
   };
 
-  const filtered = findings
+  const filtered = streamFindings
     .filter((f) => activeAgent === "all" || f.agent === activeAgent)
     .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 
@@ -233,7 +235,6 @@ export default function Results() {
           <AnalysisStream
             isStreaming={isStreaming}
             isDone={isDone}
-            findings={streamFindings}
             agentCounts={agentCounts}
             stats={stats}
           />

@@ -29,7 +29,7 @@ export const analyzeController = {
 
       const account = await findAccountByUserId(req.session.userId);
 
-      if (!account) {
+      if (!account || typeof account.accessToken !== "string") {
         return res.status(404).json({ error: "Account not found" });
       }
 
@@ -41,7 +41,7 @@ export const analyzeController = {
       });
 
       res.status(200).json(pullChangedFiles);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Internal error" });
     }
   },
@@ -63,13 +63,15 @@ export const analyzeController = {
       return res.status(404).json({ error: "Account not found" });
     }
 
+    const accessToken: string = account.accessToken;
+
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
     const branchName = await getBranchName({
-      accessToken: account.accessToken,
+      accessToken: accessToken,
       owner,
       repo,
       prNumber,
@@ -105,7 +107,7 @@ export const analyzeController = {
     const result = await Promise.all(
       codeFiles.map((file) =>
         getFileContent({
-          accessToken: account.accessToken!!,
+          accessToken: accessToken,
           owner,
           repo,
           filename: file.filename,
@@ -145,7 +147,7 @@ export const analyzeController = {
       });
 
       return res.status(200).json(analyses);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Internal error" });
     }
   },
