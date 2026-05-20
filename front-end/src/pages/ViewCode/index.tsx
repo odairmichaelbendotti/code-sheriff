@@ -76,7 +76,11 @@ export default function ViewCode() {
   function toggleGroup(reason: string) {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      next.has(reason) ? next.delete(reason) : next.add(reason);
+      if (next.has(reason)) {
+        next.delete(reason);
+      } else {
+        next.add(reason);
+      }
       return next;
     });
   }
