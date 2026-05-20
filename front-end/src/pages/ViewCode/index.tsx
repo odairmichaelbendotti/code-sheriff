@@ -76,7 +76,11 @@ export default function ViewCode() {
   function toggleGroup(reason: string) {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      next.has(reason) ? next.delete(reason) : next.add(reason);
+      if (next.has(reason)) {
+        next.delete(reason);
+      } else {
+        next.add(reason);
+      }
       return next;
     });
   }
@@ -118,6 +122,7 @@ export default function ViewCode() {
   const totalDeletions = prPreview.files.reduce((sum, f) => sum + f.deletions, 0);
   const excludedFiles = prPreview.files.filter((f) => !isAnalyzable(f.filename, f.status));
   const analyzableCount = prPreview.files.length - excludedFiles.length;
+  const isLargePr = analyzableCount > 40;
 
   return (
     <main className="min-h-full bg-bg-secondary">
@@ -183,6 +188,16 @@ export default function ViewCode() {
             >
               View details
             </button>
+          </div>
+        )}
+
+        {isLargePr && (
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-blue-500/8 border border-blue-500/20">
+            <LuTriangleAlert size={14} className="text-blue-500 shrink-0" />
+            <p className="text-xs text-blue-600 leading-relaxed">
+              <span className="font-medium">Large PR detected — {analyzableCount} files to analyze.</span>
+              {" "}This may take longer and consume more tokens than usual.
+            </p>
           </div>
         )}
 
@@ -300,7 +315,7 @@ export default function ViewCode() {
             const { analyzable, reason } = getAnalysisStatus(file.filename, file.status);
             return (
               <FileDiff
-                key={file.sha}
+                key={file.filename}
                 file={file}
                 defaultOpen={false}
                 forceOpen={allOpen}

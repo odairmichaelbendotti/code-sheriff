@@ -89,15 +89,11 @@ export async function unifiedAgent(files: FileContext[]): Promise<Finding[]> {
   const prompt = buildPrompt(files);
 
   async function callClaude(): Promise<Finding[]> {
-    console.log(`[unifiedAgent] prompt size: ${prompt.length} chars (~${Math.round(prompt.length / 4)} tokens estimated)`);
-
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 8192,
       messages: [{ role: "user", content: prompt }],
     });
-
-    console.log(`[unifiedAgent] usage: input=${response.usage.input_tokens} output=${response.usage.output_tokens} total=${response.usage.input_tokens + response.usage.output_tokens}`);
 
     const block = response.content[0];
     const text = block?.type === "text" ? block.text : "";

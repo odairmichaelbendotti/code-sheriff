@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LuArrowRight, LuGitPullRequest, LuFileCode, LuBan, LuShieldCheck } from "react-icons/lu";
+import { LuArrowRight, LuGitPullRequest, LuFileCode, LuBan, LuShieldCheck, LuTriangleAlert } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import PrInput from "./PrInput";
 import AnalysisHistory from "./AnalysisHistory";
@@ -114,6 +114,7 @@ export default function Analyze() {
     setIsPrPreviewLoading,
     isPrPreviewLoading,
   } = usePrPreviewStore();
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const isValidUrl = PR_URL_REGEX.test(url?.trim() ?? "");
 
@@ -139,6 +140,7 @@ export default function Analyze() {
 
   async function fetchPreview(currentUrl: string) {
     setIsPrPreviewLoading(true);
+    setFetchError(null);
     try {
       const response = await defaultFetch({
         endpoint: "/api/analyze/preview",
@@ -147,8 +149,8 @@ export default function Analyze() {
         body: { url: currentUrl },
       });
       setPrPreview(response as ChangedFiles);
-    } catch (err) {
-      console.log(err);
+    } catch {
+      setFetchError("Could not fetch PR details. Check the URL and try again.");
     } finally {
       setIsPrPreviewLoading(false);
     }
@@ -157,6 +159,7 @@ export default function Analyze() {
   function handleChangePr(newUrl: string) {
     setUrl(newUrl);
     setPrPreview(null);
+    setFetchError(null);
     if (PR_URL_REGEX.test(newUrl.trim())) {
       fetchPreview(newUrl.trim());
     }
@@ -193,6 +196,13 @@ export default function Analyze() {
 
           {!isPrPreviewLoading && prPreview && (
             <PrPreviewCard preview={prPreview} onContinue={handleContinue} />
+          )}
+
+          {fetchError && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-500/8 border border-red-500/20">
+              <LuTriangleAlert size={14} className="text-red-500 shrink-0" />
+              <p className="text-xs text-red-500">{fetchError}</p>
+            </div>
           )}
 
           {!isPrPreviewLoading && !prPreview && (
