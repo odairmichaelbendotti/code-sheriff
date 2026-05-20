@@ -136,8 +136,10 @@ export default function ViewCode() {
 
           <button
             type="button"
-            className="flex items-center gap-2 h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors cursor-pointer shrink-0"
+            disabled={analyzableCount === 0}
+            className="flex items-center gap-2 h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleRunAnalysis}
+            title={analyzableCount === 0 ? "No analyzable files in this PR" : undefined}
           >
             <LuPlay size={13} />
             <span className="hidden sm:inline">Run AI Analysis</span>
