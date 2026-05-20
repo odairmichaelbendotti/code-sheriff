@@ -21,16 +21,16 @@ Log in with your GitHub account, pick one of your open Pull Requests, inspect th
 
 ## Features
 
-- 🔐 **GitHub OAuth integration** — authenticates with your account and automatically lists all your open Pull Requests
-- 🔒 **Public and private repositories** — works with any repo you have access to, using your GitHub token
-- 👁️ **Visual diff viewer** — shows added and removed lines per file with syntax highlighting, with expand/collapse all
-- ⚡ **Real-time AI analysis** — findings stream live to the screen as Claude processes the code, no waiting for a final blob of text
-- 🔍 **Three analysis dimensions** — security vulnerabilities, performance bottlenecks, and code quality issues in a single agent call
-- 🧠 **Smart file filtering** — only real code files are sent to the AI; documentation, lockfiles, images, and other non-code files are automatically excluded
-- ⚖️ **Verdict system** — `Blocked`, `Review needed`, or `Looks good` based on critical issues and warnings found
-- 📂 **Grouped report** — findings organized by file, filterable by dimension (security / performance / quality)
-- 🧹 **Smart deduplication** — double deduplication by exact file/line/severity and by semantic message similarity, keeping the report clean and actionable
-- 🕓 **Analysis history** — every run is saved to your account so you can revisit past reports at any time
+- → **GitHub OAuth integration** — authenticates with your account and automatically lists all your open Pull Requests
+- → **Public and private repositories** — works with any repo you have access to, using your GitHub token
+- → **Visual diff viewer** — shows added and removed lines per file with syntax highlighting, with expand/collapse all
+- → **Real-time AI analysis** — findings stream live to the screen as Claude processes the code, no waiting for a final blob of text
+- → **Three analysis dimensions** — security vulnerabilities, performance bottlenecks, and code quality issues in a single agent call
+- → **Smart file filtering** — only real code files are sent to the AI; documentation, lockfiles, images, and other non-code files are automatically excluded
+- → **Verdict system** — `Blocked`, `Review needed`, or `Looks good` based on critical issues and warnings found
+- → **Grouped report** — findings organized by file, filterable by dimension (security / performance / quality)
+- → **Smart deduplication** — double deduplication by exact file/line/severity and by semantic message similarity, keeping the report clean and actionable
+- → **Analysis history** — every run is saved to your account so you can revisit past reports at any time
 
 ## Tech Stack
 
@@ -46,31 +46,31 @@ Log in with your GitHub account, pick one of your open Pull Requests, inspect th
 ## How It Works
 
 ```
-🔐 1. Login with GitHub OAuth
+→ 1. Login with GitHub OAuth
         ↓
-📋 2. CodeSheriff lists all your open Pull Requests
+→ 2. CodeSheriff lists all your open Pull Requests
         ↓
-📁 3. Select a PR → backend fetches changed files via Octokit
+→ 3. Select a PR — backend fetches changed files via Octokit
         ↓
-👁️ 4. Visual diff is displayed per file (accordion)
+→ 4. Visual diff is displayed per file (accordion)
         ↓
-▶️  5. Click "Run AI Analysis"
+→ 5. Click "Run AI Analysis"
         ↓
-🤖 6. Backend filters code files, fetches full content, builds prompt
+→ 6. Backend filters code files, fetches full content, builds prompt
         ↓
-🔍 7. Single call to Claude (claude-sonnet-4-6) — security + performance + quality
+→ 7. Single call to Claude (claude-sonnet-4-6) — security + performance + quality
         ↓
-⚡ 8. Findings stream live via SSE as Claude responds
+→ 8. Findings stream live via SSE as Claude responds
         ↓
-📊 9. Final report: grouped by file, filterable by agent, with verdict
+→ 9. Final report: grouped by file, filterable by agent, with verdict
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- A GitHub OAuth App ([create one here](https://github.com/settings/developers)) with scopes: `read:user`, `user:email`, `repo`
+- Node.js 22+
+- A [GitHub OAuth App](https://github.com/settings/developers) — when creating it, set the **Authorization callback URL** to `http://localhost:3000/api/auth/callback/github`. No scope configuration is needed; GitHub grants the necessary permissions automatically based on what the app requests at login.
 - A Supabase project
 - An Anthropic API key
 
