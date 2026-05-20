@@ -24,7 +24,7 @@ function totalFindings(a: Analysis) {
   return a.criticalCount + a.warningCount + a.suggestionCount;
 }
 
-const INITIAL_VISIBLE = 4;
+const INITIAL_VISIBLE = 3;
 const LOAD_MORE_COUNT = 5;
 
 export default function AnalysisHistory() {
@@ -65,9 +65,9 @@ export default function AnalysisHistory() {
         <ul className="flex flex-col gap-1.5">
           {visible.map((a) => (
             <li key={a.id}>
-              <button className="group w-full flex items-center gap-3 p-3.5 rounded-xl bg-bg-primary border border-border-subtle hover:border-border-default hover:shadow-sm transition-all text-left cursor-pointer">
-                <div className="w-8 h-8 rounded-lg bg-bg-tertiary flex items-center justify-center shrink-0">
-                  <LuGitPullRequest className="text-text-secondary" size={14} />
+              <button className="group w-full flex items-center gap-3 p-3 rounded-lg bg-bg-primary border border-border-subtle hover:border-border-default hover:shadow-sm transition-all text-left cursor-pointer">
+                <div className="w-7 h-7 rounded-md bg-bg-tertiary flex items-center justify-center shrink-0">
+                  <LuGitPullRequest className="text-text-secondary" size={13} />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export default function AnalysisHistory() {
                       #{a.prNumber}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     {a.criticalCount > 0 && (
                       <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
@@ -127,7 +127,7 @@ export default function AnalysisHistory() {
         <button
           type="button"
           onClick={() => setVisibleCount((c) => c + LOAD_MORE_COUNT)}
-          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors text-center py-1 cursor-pointer"
+          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors text-center cursor-pointer"
         >
           View more ({analyses.length - visibleCount} remaining)
         </button>

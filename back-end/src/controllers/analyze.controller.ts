@@ -91,8 +91,11 @@ export const analyzeController = {
 
     const BLOCKED_EXTENSIONS = /\.(md|mdx|txt|png|jpg|jpeg|gif|svg|ico|pdf|zip|tar|gz|woff|woff2|ttf|eot)$/i;
 
+    const BLOCKED_PATHS = /(\b|\/)(node_modules|\.git|dist|build|\.next|\.nuxt|coverage|\.cache)(\/|$)/i;
+
     const codeFiles = files.filter((f) => {
       if (f.status === "removed") return false;
+      if (BLOCKED_PATHS.test(f.filename)) return false;
       const basename = f.filename.split("/").pop() ?? f.filename;
       if (BLOCKED_FILES.has(basename)) return false;
       if (BLOCKED_EXTENSIONS.test(f.filename)) return false;

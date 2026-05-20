@@ -1,6 +1,11 @@
 import { usePullsStore, type Pull } from "@/store/pulls.store";
 import { useState } from "react";
-import { LuGitPullRequest, LuChevronDown, LuX } from "react-icons/lu";
+import {
+  LuGitPullRequest,
+  LuChevronDown,
+  LuX,
+  LuRefreshCw,
+} from "react-icons/lu";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -16,9 +21,14 @@ function repoFromUrl(repositoryUrl: string) {
 interface PrInputProps {
   url: string | null;
   handleChangePr: (url: string) => void;
+  onRefresh: () => void;
 }
 
-export default function PrInput({ url, handleChangePr }: PrInputProps) {
+export default function PrInput({
+  url,
+  handleChangePr,
+  onRefresh,
+}: PrInputProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { pulls, isFetching } = usePullsStore();
 
@@ -34,33 +44,45 @@ export default function PrInput({ url, handleChangePr }: PrInputProps) {
           Pull Request URL
         </label>
 
-        {isFetching ? (
-          <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
-            <span className="size-3 rounded-full border-2 border-text-tertiary border-t-transparent animate-spin" />
-            Loading PRs...
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setDropdownOpen((v) => !v)}
-            className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
-          >
-            <LuGitPullRequest size={13} />
-            My open PRs
-            {pulls && pulls.length > 0 && (
-              <span className="flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-accent text-white text-[10px] font-medium leading-none">
-                {pulls.length}
-              </span>
-            )}
-            <LuChevronDown
-              size={12}
-              className={[
-                "transition-transform duration-200",
-                dropdownOpen ? "rotate-180" : "",
-              ].join(" ")}
-            />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {isFetching ? (
+            <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
+              <span className="size-3 rounded-full border-2 border-text-tertiary border-t-transparent animate-spin" />
+              Loading PRs...
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onRefresh}
+                className="text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer mr-1"
+                title="Refresh pull requests"
+              >
+                <LuRefreshCw size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
+              >
+                <LuGitPullRequest size={13} />
+                My open PRs
+                {pulls && pulls.length > 0 && (
+                  <span className="flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-accent text-white text-[10px] font-medium leading-none">
+                    {pulls.length}
+                  </span>
+                )}
+                <LuChevronDown
+                  size={12}
+                  className={[
+                    "transition-transform duration-200",
+                    dropdownOpen ? "rotate-180" : "",
+                  ].join(" ")}
+                />
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <input
@@ -72,7 +94,9 @@ export default function PrInput({ url, handleChangePr }: PrInputProps) {
       />
 
       <p className="text-xs text-text-tertiary">
-        Public and private repositories are supported — your GitHub token is used to authenticate access.
+        Public and private repositories are supported. Only source code files
+        are analyzed. Dependencies, build artifacts, images, and documentation
+        are automatically excluded.
       </p>
 
       {dropdownOpen && (

@@ -200,11 +200,15 @@ export default function Results() {
           <button
             type="button"
             onClick={() => setView("stream")}
+            disabled={isDone}
             className={[
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer",
-              view === "stream"
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+              isDone
+                ? "text-text-tertiary opacity-40 cursor-not-allowed"
+                : "cursor-pointer",
+              view === "stream" && !isDone
                 ? "bg-bg-primary text-text-primary shadow-sm"
-                : "text-text-tertiary hover:text-text-secondary",
+                : "",
             ].join(" ")}
           >
             <LuActivity size={12} />

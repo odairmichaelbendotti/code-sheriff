@@ -1,9 +1,29 @@
 import { usePrPreviewStore } from "@/store/prPreview.store";
 import { useState, useEffect } from "react";
-import { LuArrowLeft, LuGitPullRequest, LuPlay } from "react-icons/lu";
+import { LuArrowLeft, LuGitPullRequest, LuPlay, LuTriangleAlert } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import FileDiff from "./FileDiff";
 import Stepper from "@/components/Stepper";
+
+const CODE_EXTENSIONS = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|swift|c|cpp|h|cs|php|rb|vue|svelte|sql|sh|yaml|yml|json|toml)$/i;
+const ENV_FILES = /^\.env(\..+)?$/i;
+const BLOCKED_FILES = new Set(["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "Cargo.lock", "composer.lock", "Gemfile.lock"]);
+const BLOCKED_EXTENSIONS = /\.(md|mdx|txt|png|jpg|jpeg|gif|svg|ico|pdf|zip|tar|gz|woff|woff2|ttf|eot)$/i;
+const BLOCKED_PATHS = /(\b|\/)(node_modules|\.git|dist|build|\.next|\.nuxt|coverage|\.cache)(\/|$)/i;
+
+function getAnalysisStatus(filename: string, status: string): { analyzable: boolean; reason?: string } {
+  if (status === "removed") return { analyzable: false, reason: "file removed" };
+  if (BLOCKED_PATHS.test(filename)) return { analyzable: false, reason: "dependency or build artifact" };
+  const basename = filename.split("/").pop() ?? filename;
+  if (BLOCKED_FILES.has(basename)) return { analyzable: false, reason: "lockfile" };
+  if (BLOCKED_EXTENSIONS.test(filename)) return { analyzable: false, reason: "not a code file" };
+  if (CODE_EXTENSIONS.test(filename) || ENV_FILES.test(basename)) return { analyzable: true };
+  return { analyzable: false, reason: "unsupported file type" };
+}
+
+function isAnalyzable(filename: string, status: string) {
+  return getAnalysisStatus(filename, status).analyzable;
+}
 
 export default function ViewCode() {
   const navigate = useNavigate();
@@ -52,6 +72,8 @@ export default function ViewCode() {
 
   const totalAdditions = prPreview.files.reduce((sum, f) => sum + f.additions, 0);
   const totalDeletions = prPreview.files.reduce((sum, f) => sum + f.deletions, 0);
+  const excludedFiles = prPreview.files.filter((f) => !isAnalyzable(f.filename, f.status));
+  const analyzableCount = prPreview.files.length - excludedFiles.length;
 
   return (
     <main className="min-h-full bg-bg-secondary">
@@ -99,6 +121,19 @@ export default function ViewCode() {
           </div>
         </div>
 
+        {excludedFiles.length > 0 && (
+          <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-500/8 border border-red-500/20">
+            <LuTriangleAlert size={14} className="text-red-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-red-500 leading-relaxed">
+              <span className="font-medium">{excludedFiles.length} file{excludedFiles.length !== 1 ? "s" : ""} will be excluded from analysis</span>
+              {" "}—{" "}
+              {analyzableCount === 0
+                ? "this PR contains no analyzable code files."
+                : `only ${analyzableCount} of ${prPreview.files.length} files will be sent to the AI. Excluded: dependencies, build artifacts, removed files, images, and documentation.`}
+            </p>
+          </div>
+        )}
+
         <div className="flex items-center justify-between -mb-1">
           <p className="text-xs text-text-tertiary">
             {prPreview.files.length} file{prPreview.files.length !== 1 ? "s" : ""} changed — click on a file to view its diff.
@@ -123,14 +158,19 @@ export default function ViewCode() {
         </div>
 
         <div className="flex flex-col gap-2">
-          {prPreview.files.map((file) => (
-            <FileDiff
-              key={file.sha}
-              file={file}
-              defaultOpen={false}
-              forceOpen={allOpen}
-            />
-          ))}
+          {prPreview.files.map((file) => {
+            const { analyzable, reason } = getAnalysisStatus(file.filename, file.status);
+            return (
+              <FileDiff
+                key={file.sha}
+                file={file}
+                defaultOpen={false}
+                forceOpen={allOpen}
+                analyzable={analyzable}
+                excludeReason={reason}
+              />
+            );
+          })}
         </div>
       </div>
     </main>
