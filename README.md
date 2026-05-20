@@ -133,6 +133,39 @@ npm run dev:backend    # Express API at http://localhost:3000
 
 Open [http://localhost:5173](http://localhost:5173) and log in with your GitHub account.
 
+## API Documentation
+
+With the backend running, the interactive API reference is available at:
+
+```
+http://localhost:4000/api/docs
+```
+
+It is powered by [Swagger UI](https://swagger.io/tools/swagger-ui/) and documents all available endpoints with their request bodies, parameters, and response schemas.
+
+| URL | Description |
+|---|---|
+| `http://localhost:4000/api/docs` | Interactive Swagger UI |
+| `http://localhost:4000/api/docs/spec` | Raw OpenAPI 3.0 spec (JSON) |
+
+### Documented endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/pulls` | List open PRs for the authenticated user |
+| `POST` | `/api/analyze/preview` | Fetch changed files from a GitHub PR |
+| `POST` | `/api/analyze/run` | Run AI analysis and stream findings via SSE |
+| `GET` | `/api/analyze/history` | List past analyses for the authenticated user |
+| `DELETE` | `/api/analyze/history/:id` | Delete an analysis by ID |
+
+### Authentication in Swagger
+
+All `/api/analyze/*` and `/api/pulls` routes require an active session. Authentication is cookie-based (GitHub OAuth), so to test protected endpoints directly from Swagger UI:
+
+1. Log in through the frontend at [http://localhost:5173](http://localhost:5173).
+2. Your browser session cookie is automatically sent — open Swagger UI in the **same browser**.
+3. Requests made from the Swagger UI will include the session cookie and be treated as authenticated.
+
 ---
 
 <div align="center">
