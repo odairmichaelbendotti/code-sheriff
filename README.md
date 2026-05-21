@@ -34,14 +34,14 @@ Log in with your GitHub account, pick one of your open Pull Requests, inspect th
 
 ## Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| Frontend | React, React Router, Tailwind CSS v4, Zustand |
-| Backend | Node.js, Express |
-| AI | Anthropic SDK — `claude-sonnet-4-6` |
-| GitHub integration | Octokit (`@octokit/rest`) |
-| Auth | Better Auth + GitHub OAuth App |
-| Database | Supabase (PostgreSQL) + Prisma ORM |
+| Layer              | Technologies                                  |
+| ------------------ | --------------------------------------------- |
+| Frontend           | React, React Router, Tailwind CSS v4, Zustand |
+| Backend            | Node.js, Express                              |
+| AI                 | Anthropic SDK — `claude-sonnet-4-6`           |
+| GitHub integration | Octokit (`@octokit/rest`)                     |
+| Auth               | Better Auth + GitHub OAuth App                |
+| Database           | Supabase (PostgreSQL) + Prisma ORM            |
 
 ## How It Works
 
@@ -70,7 +70,7 @@ Log in with your GitHub account, pick one of your open Pull Requests, inspect th
 ### Prerequisites
 
 - Node.js 22+
-- A [GitHub OAuth App](https://github.com/settings/developers) — when creating it, set the **Authorization callback URL** to `http://localhost:3000/api/auth/callback/github`. No scope configuration is needed; GitHub grants the necessary permissions automatically based on what the app requests at login.
+- A [GitHub OAuth App](https://github.com/settings/developers) — when creating it, set the **Authorization callback URL** to `http://localhost:4000/api/auth/callback/github`. No scope configuration is needed; GitHub grants the necessary permissions automatically based on what the app requests at login.
 - A Supabase project
 - An Anthropic API key
 
@@ -86,7 +86,7 @@ cd code-sheriff
 **Backend** — create `back-end/.env`:
 
 ```env
-BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:4000
 BETTER_AUTH_SECRET=your_secret_key
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
@@ -97,7 +97,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 **Frontend** — create `front-end/.env`:
 
 ```env
-VITE_SERVER_URL=http://localhost:3000
+VITE_SERVER_URL=http://localhost:4000
 ```
 
 ### 3. Install dependencies
@@ -128,7 +128,7 @@ Or start them individually:
 
 ```bash
 npm run dev:frontend   # React app at http://localhost:5173
-npm run dev:backend    # Express API at http://localhost:3000
+npm run dev:backend    # Express API at http://localhost:4000
 ```
 
 Open [http://localhost:5173](http://localhost:5173) and log in with your GitHub account.
@@ -143,20 +143,20 @@ http://localhost:4000/api/docs
 
 It is powered by [Swagger UI](https://swagger.io/tools/swagger-ui/) and documents all available endpoints with their request bodies, parameters, and response schemas.
 
-| URL | Description |
-|---|---|
-| `http://localhost:4000/api/docs` | Interactive Swagger UI |
+| URL                                   | Description                 |
+| ------------------------------------- | --------------------------- |
+| `http://localhost:4000/api/docs`      | Interactive Swagger UI      |
 | `http://localhost:4000/api/docs/spec` | Raw OpenAPI 3.0 spec (JSON) |
 
 ### Documented endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/pulls` | List open PRs for the authenticated user |
-| `POST` | `/api/analyze/preview` | Fetch changed files from a GitHub PR |
-| `POST` | `/api/analyze/run` | Run AI analysis and stream findings via SSE |
-| `GET` | `/api/analyze/history` | List past analyses for the authenticated user |
-| `DELETE` | `/api/analyze/history/:id` | Delete an analysis by ID |
+| Method   | Path                       | Description                                   |
+| -------- | -------------------------- | --------------------------------------------- |
+| `GET`    | `/api/pulls`               | List open PRs for the authenticated user      |
+| `POST`   | `/api/analyze/preview`     | Fetch changed files from a GitHub PR          |
+| `POST`   | `/api/analyze/run`         | Run AI analysis and stream findings via SSE   |
+| `GET`    | `/api/analyze/history`     | List past analyses for the authenticated user |
+| `DELETE` | `/api/analyze/history/:id` | Delete an analysis by ID                      |
 
 ### Authentication in Swagger
 
