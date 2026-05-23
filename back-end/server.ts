@@ -4,7 +4,10 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { auth } from "./src/lib/auth.js";
 import { analyzeRouter } from "./src/routes/analyze.routes.js";
-import { serve as swaggerServe, setup as swaggerSetup } from "swagger-ui-express";
+import {
+  serve as swaggerServe,
+  setup as swaggerSetup,
+} from "swagger-ui-express";
 import { swaggerSpec } from "./src/lib/swagger.js";
 
 const app = express();
@@ -24,7 +27,11 @@ app.get("/api/docs/spec", (_req, res) => {
 });
 app.use("/api/docs", swaggerServe, swaggerSetup(swaggerSpec));
 
-app.listen(4000, () => {
-  console.log("http://localhost:4000");
-  console.log("Swagger UI: http://localhost:4000/api/docs");
+const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const FRONTEND_PORT = process.env.FRONTEND_PORT ?? "5173";
+
+app.listen(PORT, () => {
+  console.log(`Frontend running at http://localhost:${FRONTEND_PORT}`);
+  console.log(`Backend running at http://localhost:${PORT}`);
+  console.log(`Swagger UI: http://localhost:${PORT}/api/docs`);
 });
