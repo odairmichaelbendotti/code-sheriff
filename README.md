@@ -1,3 +1,4 @@
+
 <div align="center">
 
 # CodeSheriff
@@ -18,6 +19,8 @@
 Manual code reviews are slow, inconsistent, and often miss subtle bugs. CodeSheriff solves this by putting an AI agent to work the moment you're ready to merge — no CI pipeline configuration, no GitHub App installation, no setup friction.
 
 Log in with your GitHub account, pick one of your open Pull Requests, inspect the visual diff, and hit **Run AI Analysis**. Within seconds, findings start streaming to your screen live — each one with the exact line of code, severity level, a human-readable explanation, a fix suggestion, and a before/after diff.
+
+<img width="1920" height="1080" alt="0522 (1)" src="https://github.com/user-attachments/assets/57e70c73-bc5f-48ff-ba76-62c4bad68c2b" />
 
 ## Features
 
