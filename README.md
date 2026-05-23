@@ -108,15 +108,18 @@ From the root of the project — installs dependencies for both frontend and bac
 npm install
 ```
 
-### 4. Run database migrations
+### 4. Sync the database schema
 
 ```bash
 cd back-end
-npx prisma migrate deploy
+npx prisma db push
+npx prisma generate
 cd ..
 ```
 
 ### 5. Start the servers
+
+> **Note:** The default ports are `5173` (frontend) and `4000` (backend). The examples in this documentation, including environment variables and the OAuth callback URL, use these ports. You can change them freely — just remember that the backend logs the frontend URL as `http://localhost:5173` by default, so if you change the frontend port you can override it via the `FRONTEND_PORT` environment variable in `back-end/.env`.
 
 From the root, start both servers with a single command:
 
